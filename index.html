@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Новогодняя Студия 4K Живых Обоев</title>
+  <!-- Подключаем официальный скрипт Google Sign-In -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    :root {
+      --bg: #070b14;
+      --card: rgba(16, 24, 42, 0.85);
+      --border: rgba(255, 255, 255, 0.12);
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --gold: #fbbf24;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #131f3a 0%, #070b14 65%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 520px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      padding: 14px 16px;
+      border-radius: 18px;
+    }
+
+    .logo-wrap h1 {
+      font-size: 1.08rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-wrap p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .admin-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: 0.2s;
+      flex-shrink: 0;
+    }
+
+    .admin-btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .id-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-weight: 600;
+    }
+
+    .quota-badge {
+      font-weight: 600;
+      color: var(--gold);
+    }
+
+    .auth-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+    }
+
+    .preview-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 16;
+      max-height: 460px;
+      background: #04070d;
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .upload-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      background: rgba(7, 11, 20, 0.72);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .upload-overlay.hidden {
+      display: none;
+    }
+
+    .upload-icon {
+      font-size: 2.4rem;
+      margin-bottom: 8px;
+    }
+
+    .controls {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .control-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 28px;
+      background: transparent;
+      touch-action: none;
+      cursor: pointer;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ffffff, var(--accent));
+      border: 2px solid #070b14;
+      box-shadow: 0 2px 8px rgba(56, 189, 248, 0.55);
+      margin-top: -8px;
+      transition: transform 0.12s ease;
+    }
+
+    .effects-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .effect-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 8px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .effect-chip.active {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--accent);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 14px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #04070d;
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-bot {
+      width: 100%;
+      background: rgba(34, 197, 94, 0.14);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+    }
+
+    .progress-wrap {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--gold));
+      transition: width 0.15s;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 100;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 400px;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .modal h2 {
+      font-size: 1.1rem;
+    }
+
+    .modal input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1e293b;
+      border: 1px solid var(--accent);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      z-index: 200;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo-wrap">
+        <h1>❄️ 4K Live Wallpaper Studio</h1>
+        <p>Новогодняя анимация и экспорт в Ultra HD</p>
+      </div>
+      <button class="admin-btn" id="openAdminBtn" title="Панель администратора" aria-label="Панель администратора">🔑</button>
+    </header>
+
+    <div class="status-bar">
+      <div class="id-badge" id="copyIdBtn" title="Нажмите, чтобы скопировать ID">
+        <span>🆔 ID:</span>
+        <span id="userIdDisplay">---</span>
+        <span>📋</span>
+      </div>
+      <div class="quota-badge" id="quotaDisplay">Осталось: 2 / 2</div>
+    </div>
+
+    <!-- Блок авторизации через Google -->
+    <div class="auth-bar" id="authBar">
+      <span id="authStatusText" style="color: var(--muted); font-size: 0.82rem;">⚠️ Вы не вошли в аккаунт</span>
+      <div id="googleSignInDiv"></div>
+      <button class="btn btn-secondary" id="googleSignOutBtn" style="display: none; padding: 6px 12px; font-size: 0.78rem;">Выйти</button>
+    </div>
+
+    <div class="preview-card">
+      <div class="canvas-wrapper" id="canvasBox">
+        <canvas id="wallpaperCanvas"></canvas>
+        <div class="upload-overlay" id="uploadOverlay">
+          <div class="upload-icon">🖼️</div>
+          <strong>Нажмите, чтобы выбрать фото</strong>
+          <span style="font-size: 0.78rem; color: var(--muted); margin-top: 4px;">
+            Поддерживаются JPG, PNG, WEBP из галереи
+          </span>
+        </div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" hidden />
+    </div>
+
+    <div class="controls">
+      <div class="control-group">
+        <div class="control-header"><span>Эффект атмосферы</span></div>
+        <div class="effects-grid">
+          <div class="effect-chip active" data-effect="snow">❄️ Снегопад</div>
+          <div class="effect-chip" data-effect="bokeh">✨ Боке огни</div>
+          <div class="effect-chip" data-effect="blizzard">🌨️ Метель</div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <div class="control-header">
+          <span>Интенсивность частиц</span>
+          <span id="densityVal">140</span>
+        </div>
+        <input type="range" id="densityRange" min="30" max="350" value="140" />
+      </div>
+
+      <div class="control-group">
+        <div class="control-header">
+          <span>Скорость анимации</span>
+          <span id="speedVal">1.0x</span>
+        </div>
+        <input type="range" id="speedRange" min="0.3" max="2.5" step="0.1" value="1.0" />
+      </div>
+
+      <div class="progress-wrap" id="progressWrap">
+        <div class="control-header">
+          <span id="progressText">Рендер 4K (2160×3840)...</span>
+          <span id="progressPercent">0%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="changePhotoBtn">📁 Выбрать фото</button>
+        <button class="btn btn-primary" id="renderBtn">🎬 Скачать 4K</button>
+      </div>
+
+      <a class="btn btn-bot" id="botLinkBtn" href="https://t.me/helper_4k_wallpapers_bot" target="_blank" rel="noopener">
+        🤖 Запросить генерации в @helper_4k_wallpapers_bot
+      </a>
+    </div>
+  </div>
+
+  <!-- Admin Modal -->
+  <div class="modal-backdrop" id="adminModal">
+    <div class="modal">
+      <h2>🔐 Панель администратора</h2>
+      <div id="adminAuthSection" style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="password" id="adminPassInput" placeholder="Введите пароль администратора" />
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="closeAdminAuth">Отмена</button>
+          <button class="btn btn-primary" id="loginAdminBtn">Войти</button>
+        </div>
+      </div>
+
+      <div id="adminPanelSection" style="display: none; flex-direction: column; gap: 12px;">
+        <p style="font-size: 0.82rem; color: var(--muted);">
+          Ваш текущий ID: <strong id="adminCurrentId" style="color: #fff;"></strong>
+        </p>
+        <div class="control-group">
+          <div class="control-header"><span>ID пользователя (или почта)</span></div>
+          <input type="text" id="targetUserIdInput" placeholder="Например: user_48291 или gmail" />
+        </div>
+        <div class="control-group">
+          <div class="control-header"><span>Выдать генераций (1 – 999)</span></div>
+          <input type="number" id="grantCountInput" min="1" max="999" value="10" />
+        </div>
+        <div class="preset-grid">
+          <button class="preset-btn" data-val="5">+5</button>
+          <button class="preset-btn" data-val="25">+25</button>
+          <button class="preset-btn" data-val="100">+100</button>
+          <button class="preset-btn" data-val="unlimited">∞ Безлимит</button>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="closeAdminPanel">Закрыть</button>
+          <button class="btn btn-primary" id="applyGrantBtn">Применить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const ADMIN_PASS = "2408";
+    const DAILY_FREE_LIMIT = 2;
+    const GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
+
+    const canvas = document.getElementById("wallpaperCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 720;
+    canvas.height = 1280;
+
+    let bgImage = null;
+    let effectType = "snow";
+    let particleCount = 140;
+    let speedMultiplier = 1.0;
+    let particles = [];
+    let isRendering = false;
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { t.style.display = "none"; }, 2600);
+    }
+
+    let userId = localStorage.getItem("lw_user_id");
+    if (!userId || userId.startsWith("NW-")) {
+      userId = "user_" + Math.floor(10000 + Math.random() * 90000);
+      localStorage.setItem("lw_user_id", userId);
+    }
+
+    const savedGoogleUser = localStorage.getItem("lw_google_email");
+    if (savedGoogleUser) {
+      userId = savedGoogleUser;
+    }
+
+    document.getElementById("userIdDisplay").textContent = userId;
+    document.getElementById("adminCurrentId").textContent = userId;
+    document.getElementById("targetUserIdInput").value = userId;
+
+    function getQuotaState() {
+      const today = new Date().toISOString().slice(0, 10);
+      const savedDate = localStorage.getItem("lw_quota_date");
+      if (savedDate !== today) {
+        localStorage.setItem("lw_quota_date", today);
+        localStorage.setItem("lw_used_today", "0");
+      }
+      const used = parseInt(localStorage.getItem("lw_used_today") || "0", 10);
+      const bonus = parseInt(localStorage.getItem("lw_bonus_" + userId) || "0", 10);
+      const unlimited = localStorage.getItem("lw_unlimited_" + userId) === "true";
+      return { used, bonus, unlimited };
+    }
+
+    function updateQuotaUI() {
+      const { used, bonus, unlimited } = getQuotaState();
+      const el = document.getElementById("quotaDisplay");
+      if (unlimited) {
+        el.textContent = "Осталось: ∞ (Безлимит)";
+        return;
+      }
+      const freeLeft = Math.max(0, DAILY_FREE_LIMIT - used);
+      const totalLeft = freeLeft + bonus;
+      el.textContent = `Осталось: ${totalLeft} (беспл. ${freeLeft}/${DAILY_FREE_LIMIT}${bonus > 0 ? ` + ${bonus} бонус` : ""})`;
+    }
+
+    function consumeGeneration() {
+      const state = getQuotaState();
+      if (state.unlimited) return true;
+      const freeLeft = Math.max(0, DAILY_FREE_LIMIT - state.used);
+      if (freeLeft > 0) {
+        localStorage.setItem("lw_used_today", String(state.used + 1));
+        updateQuotaUI();
+        return true;
+      }
+      if (state.bonus > 0) {
+        localStorage.setItem("lw_bonus_" + userId, String(state.bonus - 1));
+        updateQuotaUI();
+        return true;
+      }
+      return false;
+    }
+
+    updateQuotaUI();
+
+    window.onload = function () {
+      if (typeof google !== "undefined") {
+        google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+          document.getElementById("googleSignInDiv"),
+          { theme: "outline", size: "medium", text: "signin_with", locale: "ru" }
+        );
+      }
+      if (savedGoogleUser) {
+        setGoogleLoggedInUI(savedGoogleUser);
+      }
+    };
+
+    function handleCredentialResponse(response) {
+      try {
+        const payload = JSON.parse(atob(response.credential.split('.')[1]));
+        const email = payload.email;
+        localStorage.setItem("lw_google_email", email);
+        userId = email;
+        localStorage.setItem("lw_user_id", userId);
+        
+        document.getElementById("userIdDisplay").textContent = userId;
+        document.getElementById("adminCurrentId").textContent = userId;
+        document.getElementById("targetUserIdInput").value = userId;
+        updateQuotaUI();
+        setGoogleLoggedInUI(email);
+        showToast(`Успешный вход: ${email}`);
+      } catch (err) {
+        showToast("Ошибка авторизации Google");
+      }
+    }
+
+    function setGoogleLoggedInUI(email) {
+      document.getElementById("authStatusText").innerHTML = `👤 <b>${email}</b>`;
+      document.getElementById("googleSignInDiv").style.display = "none";
+      document.getElementById("googleSignOutBtn").style.display = "block";
+    }
+
+    document.getElementById("googleSignOutBtn").addEventListener("click", () => {
+      localStorage.removeItem("lw_google_email");
+      location.reload();
+    });
+
+    document.getElementById("copyIdBtn").addEventListener("click", () => {
+      navigator.clipboard?.writeText(userId);
+      showToast(`ID ${userId} скопирован!`);
+    });
+
+    function createParticle(w, h) {
+      return {
+        x: Math.random() * w,
+        y: Math.random() * h,
+        r: effectType === "bokeh" ? 4 + Math.random() * 14 : 1.5 + Math.random() * 4,
+        vy: effectType === "blizzard" ? 3 + Math.random() * 4 : 1 + Math.random() * 2.2,
+        vx: effectType === "blizzard" ? -2.5 - Math.random() * 2 : (Math.random() - 0.5) * 0.8,
+        alpha: 0.35 + Math.random() * 0.65,
+        phase: Math.random() * Math.PI * 2,
+        hue: [35, 45, 195, 340][Math.floor(Math.random() * 4)],
+        loopCyclesY: effectType === "blizzard" ? (2 + Math.floor(Math.random() * 2)) : 1,
+        loopCyclesX: effectType === "blizzard" ? -(1 + Math.floor(Math.random() * 2)) : 0,
+        swayCycles: 1 + Math.floor(Math.random() * 2)
+      };
+    }
+
+    function initParticles(w, h) {
+      particles = Array.from({ length: particleCount }, () => createParticle(w, h));
+    }
+
+    function syncParticleCount(w, h) {
+      while (particles.length < particleCount) {
+        particles.push(createParticle(w, h));
+      }
+      if (particles.length > particleCount) {
+        particles.length = particleCount;
+      }
+    }
+
+    initParticles(canvas.width, canvas.height);
+
+    function drawBackground(targetCtx, w, h) {
+      targetCtx.clearRect(0, 0, w, h);
+      if (bgImage) {
+        const imgRatio = bgImage.width / bgImage.height;
+        const canvasRatio = w / h;
+        let dw = w, dh = h, dx = 0, dy = 0;
+        if (imgRatio > canvasRatio) {
+          dw = h * imgRatio;
+          dx = (w - dw) / 2;
+        } else {
+          dh = w / imgRatio;
+          dy = (h - dh) / 2;
+        }
+        targetCtx.drawImage(bgImage, dx, dy, dw, dh);
+      } else {
+        const grad = targetCtx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, "#0b192c");
+        grad.addColorStop(0.5, "#1e3e62");
+        grad.addColorStop(1, "#09101d");
+        targetCtx.fillStyle = grad;
+        targetCtx.fillRect(0, 0, w, h);
+      }
+    }
+
+    function renderParticle(targetCtx, x, y, r, alpha, hue, scaleRatio) {
+      targetCtx.save();
+      if (effectType === "bokeh") {
+        const g = targetCtx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `hsla(${hue}, 95%, 75%, ${alpha})`);
+        g.addColorStop(1, `hsla(${hue}, 95%, 60%, 0)`);
+        targetCtx.fillStyle = g;
+      } else {
+        targetCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        targetCtx.shadowColor = "rgba(255,255,255,0.8)";
+        targetCtx.shadowBlur = 6 * scaleRatio;
+      }
+      targetCtx.beginPath();
+      targetCtx.arc(x, y, r, 0, Math.PI * 2);
+      targetCtx.fill();
+      targetCtx.restore();
+    }
+
+    function drawFrame(targetCtx, w, h, dtScale = 1) {
+      drawBackground(targetCtx, w, h);
+      const scaleRatio = w / 720;
+
+      for (const p of particles) {
+        p.phase += 0.03 * speedMultiplier;
+        p.y += p.vy * speedMultiplier * dtScale;
+        p.x += (p.vx + Math.sin(p.phase) * 0.5) * speedMultiplier * dtScale;
+
+        if (p.y > h + 20) { p.y = -15; p.x = Math.random() * w; }
+        if (p.x < -20) p.x = w + 15;
+        if (p.x > w + 20) p.x = -15;
+
+        renderParticle(targetCtx, p.x, p.y, p.r * scaleRatio, p.alpha, p.hue, scaleRatio);
+      }
+    }
+
+    function drawSeamlessLoopFrame(targetCtx, w, h, t) {
+      drawBackground(targetCtx, w, h);
+      const scaleRatio = w / 720;
+      const pad = 40 * scaleRatio;
+      const spanW = w + pad * 2;
+      const spanH = h + pad * 2;
+      const speedCycles = Math.max(1, Math.round(speedMultiplier));
+      const swayAmp = (effectType === "blizzard" ? 32 : 24) * scaleRatio;
+
+      for (const p of particles) {
+        const baseX = p.x * 3 + pad;
+        const baseY = p.y * 3 + pad;
+
+        const cyclesY = p.loopCyclesY * speedCycles;
+        const cyclesX = p.loopCyclesX * speedCycles;
+        const swayFreq = p.swayCycles * speedCycles;
+
+        const swayOffset = Math.sin(p.phase + t * Math.PI * 2 * swayFreq) * swayAmp;
+        const rawX = baseX + cyclesX * spanW * t + swayOffset;
+        const rawY = baseY + cyclesY * spanH * t;
+
+        const x = (((rawX % spanW) + spanW) % spanW) - pad;
+        const y = (((rawY % spanH) + spanH) % spanH) - pad;
+
+        renderParticle(targetCtx, x, y, p.r * scaleRatio, p.alpha, p.hue, scaleRatio);
+      }
+    }
+
+    function animate() {
+      if (!isRendering) {
+        drawFrame(ctx, canvas.width, canvas.height, 1);
+      }
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    const fileInput = document.getElementById("fileInput");
+    document.getElementById("uploadOverlay").addEventListener("click", () => fileInput.click());
+    document.getElementById("changePhotoBtn").addEventListener("click", () => fileInput.click());
+
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = new Image();
+        img.onload = () => {
+          bgImage = img;
+          document.getElementById("uploadOverlay").classList.add("hidden");
+          showToast("Фото загружено!");
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.querySelectorAll(".effect-chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        document.querySelectorAll(".effect-chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        effectType = chip.dataset.effect;
+        initParticles(canvas.width, canvas.height);
+      });
+    });
+
+    const densityRange = document.getElementById("densityRange");
+    const densityVal = document.getElementById("densityVal");
+    densityRange.addEventListener("input", (e) => {
+      particleCount = Math.min(350, Math.max(30, parseInt(e.target.value, 10) || 140));
+      densityVal.textContent = particleCount;
+      syncParticleCount(canvas.width, canvas.height);
+    });
+
+    const speedRange = document.getElementById("speedRange");
+    const speedVal = document.getElementById("speedVal");
+    speedRange.addEventListener("input", (e) => {
+      speedMultiplier = Math.min(2.5, Math.max(0.3, parseFloat(e.target.value) || 1.0));
+      speedVal.textContent = speedMultiplier.toFixed(1) + "x";
+    });
+
+    document.getElementById("renderBtn").addEventListener("click", async () => {
+      if (isRendering) return;
+      const { used, bonus, unlimited } = getQuotaState();
+      const totalLeft = unlimited ? 999 : Math.max(0, DAILY_FREE_LIMIT - used) + bonus;
+      if (totalLeft <= 0) {
+        showToast("Лимит исчерпан! Запросите генерации в @helper_4k_wallpapers_bot");
+        return;
+      }
+
+      if (!consumeGeneration()) return;
+
+      isRendering = true;
+      const renderBtn = document.getElementById("renderBtn");
+      const progressWrap = document.getElementById("progressWrap");
+      const progressFill = document.getElementById("progressFill");
+      const progressPercent = document.getElementById("progressPercent");
+      const progressText = document.getElementById("progressText");
+
+      renderBtn.disabled = true;
+      progressWrap.style.display = "flex";
+      progressText.textContent = "Рендер 5с цикла 4K (2160×3840)...";
+
+      const outCanvas = document.createElement("canvas");
+      outCanvas.width = 2160;
+      outCanvas.height = 3840;
+      const outCtx = outCanvas.getContext("2d");
+
+      const fps = 30;
+      const durationSec = 5;
+      const totalFrames = fps * durationSec;
+
+      const stream = outCanvas.captureStream(0);
+      const videoTrack = stream.getVideoTracks()[0];
+
+      const mimeCandidates = [
+        { mime: "video/mp4;codecs=avc1.42E01E", ext: "mp4" },
+        { mime: "video/mp4", ext: "mp4" },
+        { mime: "video/webm;codecs=vp9", ext: "webm" },
+        { mime: "video/webm", ext: "webm" }
+      ];
+      const selected = mimeCandidates.find(c => MediaRecorder.isTypeSupported(c.mime)) || { mime: "video/webm", ext: "webm" };
+
+      const recorder = new MediaRecorder(stream, {
+        mimeType: selected.mime,
+        videoBitsPerSecond: 18000000
+      });
+      const chunks = [];
+
+      recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: selected.mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `live-wallpaper-4k-loop5s-${userId}.${selected.ext}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        isRendering = false;
+        renderBtn.disabled = false;
+        progressWrap.style.display = "none";
+        showToast(`5-сек бесшовное 4K видео (.${selected.ext}) скачано!`);
+      };
+
+      recorder.start();
+
+      for (let f = 0; f < totalFrames; f++) {
+        const t = f / totalFrames;
+        drawSeamlessLoopFrame(outCtx, outCanvas.width, outCanvas.height, t);
+        if (videoTrack && typeof videoTrack.requestFrame === "function") {
+          videoTrack.requestFrame();
+        }
+        const pct = Math.round(((f + 1) / totalFrames) * 100);
+        progressFill.style.width = pct + "%";
+        progressPercent.textContent = pct + "%";
+        await new Promise(r => setTimeout(r, 1000 / fps));
+      }
+
+      recorder.stop();
+    });
+
+    const adminModal = document.getElementById("adminModal");
+    const adminAuthSection = document.getElementById("adminAuthSection");
+    const adminPanelSection = document.getElementById("adminPanelSection");
+
+    document.getElementById("openAdminBtn").addEventListener("click", () => {
+      adminModal.classList.add("open");
+      adminAuthSection.style.display = "flex";
+      adminPanelSection.style.display = "none";
+      document.getElementById("adminPassInput").value = "";
+    });
+
+    document.getElementById("closeAdminAuth").addEventListener("click", () => adminModal.classList.remove("open"));
+    document.getElementById("closeAdminPanel").addEventListener("click", () => adminModal.classList.remove("open"));
+
+    document.getElementById("loginAdminBtn").addEventListener("click", () => {
+      const pass = document.getElementById("adminPassInput").value.trim();
+      if (pass === ADMIN_PASS) {
+        adminAuthSection.style.display = "none";
+        adminPanelSection.style.display = "flex";
+      } else {
+        showToast("Неверный пароль!");
+      }
+    });
+
+    document.querySelectorAll(".preset-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const val = btn.dataset.val;
+        const targetId = document.getElementById("targetUserIdInput").value.trim() || userId;
+        if (val === "unlimited") {
+          localStorage.setItem("lw_unlimited_" + targetId, "true");
+          updateQuotaUI();
+          showToast(`Безлимит активирован для ${targetId}`);
+        } else {
+          document.getElementById("grantCountInput").value = val;
+        }
+      });
+    });
+
+    document.getElementById("applyGrantBtn").addEventListener("click", () => {
+      const targetId = document.getElementById("targetUserIdInput").value.trim() || userId;
+      const count = Math.min(999, Math.max(1, parseInt(document.getElementById("grantCountInput").value, 10) || 1));
+      const currentBonus = parseInt(localStorage.getItem("lw_bonus_" + targetId) || "0", 10);
+      localStorage.setItem("lw_unlimited_" + targetId, "false");
+      localStorage.setItem("lw_bonus_" + targetId, String(currentBonus + count));
+      updateQuotaUI();
+      showToast(`Выдано +${count} генераций для ${targetId}`);
+    });
+  </script>
+</body>
+</html>
