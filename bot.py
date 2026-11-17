@@ -3,6 +3,7 @@ import logging
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command, CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiohttp import web
 
 # ==========================================
 # НАСТРОЙКИ БОТА
@@ -17,7 +18,6 @@ logging.basicConfig(level=logging.INFO)
 
 # Хранилище активных заявок, чтобы не было дублей
 active_requests = set()
-
 
 # Клавиатура для администратора под каждой заявкой
 def get_admin_keyboard(web_user_id: str, tg_user_id: int) -> InlineKeyboardMarkup:
@@ -56,41 +56,32 @@ def get_admin_keyboard(web_user_id: str, tg_user_id: int) -> InlineKeyboardMarku
         ]
     )
 
-
-# Обработка команды /start (в том числе с параметром ?start=user_xxxxx или ?usr_xxxxx с сайта)
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
     tg_user_id = message.from_user.id
     username = f"@{message.from_user.username}" if message.from_user.username else "Без юзернейма"
     full_name = message.from_user.full_name
 
-    # Проверяем, передан ли ID с сайта через /start
     args = message.text.split()
     if len(args) > 1:
         web_user_id = args[1].strip()
 
-        # Защита от спама заявками
         if web_user_id in active_requests:
             await message.answer(
-                "⏳ **Ваша заявка уже находится на рассмотрении!**\n\nПожалуйста, "
-                "дождитесь ответа администратора. Как только генерации будут "
-                "начислены, я сразу пришлю уведомление сюда.",
+                "⏳ **Ваша заявка уже находится на рассмотрении!**\n\nПожалуйста, дожидайтесь ответа администратора.",
                 parse_mode="Markdown",
             )
             return
 
         active_requests.add(web_user_id)
 
-        # Ответ пользователю
         await message.answer(
             "🎄 **Заявка успешно отправлена!**\n\n"
             f"Ваш ID на сайте: `{web_user_id}`\n"
-            "Ожидайте ответа администратора — обычно это занимает пару минут. "
-            "Я пришлю уведомление прямо в этот чат, как только доступ будет открыт!",
+            "Ожидайте ответа администратора.",
             parse_mode="Markdown",
         )
 
-        # Отправка уведомления Админу
         admin_text = (
             "🔔 **Новая заявка на генерации!**\n\n"
             f"👤 **Пользователь:** {full_name} ({username})\n"
@@ -104,9 +95,7 @@ async def cmd_start(message: types.Message):
             reply_markup=get_admin_keyboard(web_user_id, tg_user_id),
             parse_mode="Markdown",
         )
-
     else:
-        # Если юзер запустил бота просто так (Приветствие)
         kb = InlineKeyboardMarkup(
             inline_keyboard=[[
                 InlineKeyboardButton(
@@ -115,15 +104,11 @@ async def cmd_start(message: types.Message):
             ]]
         )
         await message.answer(
-            "❄️ **Привет! Это официальный бот Студии Живых 4K Обоев.**\n\n"
-            "Если у вас закончились бесплатные генерации на сайте, перейдите туда "
-            "и нажмите кнопку **«Запросить генерации»** — заявка оформится автоматически.",
+            "❄️ **Привет! Это официальный бот Студии Живых 4K Обоев.**",
             reply_markup=kb,
             parse_mode="Markdown",
         )
 
-
-# Обработка ID, отправленного простым текстом (поддерживает и user_, и usr_)
 @dp.message(F.text.startswith(("user_", "usr_")))
 async def process_text_id(message: types.Message):
     tg_user_id = message.from_user.id
@@ -131,34 +116,19 @@ async def process_text_id(message: types.Message):
     full_name = message.from_user.full_name
     web_user_id = message.text.strip()
 
-    # Защита от спама заявками
     if web_user_id in active_requests:
-        await message.answer(
-            "⏳ **Ваша заявка уже находится на рассмотрении!**\n\nПожалуйста, "
-            "дождитесь ответа администратора. Как только генерации будут "
-            "начислены, я сразу пришлю уведомление сюда.",
-            parse_mode="Markdown",
-        )
+        await message.answer("⏳ Ваша заявка уже на рассмотрении!", parse_mode="Markdown")
         return
 
     active_requests.add(web_user_id)
 
-    # Ответ пользователю
-    await message.answer(
-        "🎄 **Заявка успешно отправлена!**\n\n"
-        f"Ваш ID на сайте: `{web_user_id}`\n"
-        "Ожидайте ответа администратора — обычно это занимает пару минут. "
-        "Я пришлю уведомление прямо в этот чат, как только доступ будет открыт!",
-        parse_mode="Markdown",
-    )
+    await message.answer(f"🎄 Заявка отправлена! ID: `{web_user_id}`", parse_mode="Markdown")
 
-    # Отправка уведомления Админу
     admin_text = (
-        "🔔 **Новая заявка на генерации!**\n\n"
-        f"👤 **Пользователь:** {full_name} ({username})\n"
-        f"🆔 **Telegram ID:** `{tg_user_id}`\n"
-        f"💻 **ID на сайте:** `{web_user_id}`\n\n"
-        "Выберите, сколько генераций начислить:"
+        "🔔 **Новая заявка!**\n\n"
+        f"👤 {full_name} ({username})\n"
+        f"🆔 `{tg_user_id}`\n"
+        f"💻 `{web_user_id}`"
     )
     await bot.send_message(
         chat_id=ADMIN_ID,
@@ -167,20 +137,11 @@ async def process_text_id(message: types.Message):
         parse_mode="Markdown",
     )
 
-
-# Обработка нажатия кнопки «Отправить ID вручную»
 @dp.callback_query(F.data == "manual_id")
 async def process_manual_id(callback: types.CallbackQuery):
-    await callback.message.answer(
-        "✍️ **Введите ваш ID вручную:**\n\n"
-        "Пожалуйста, отправьте ID в чат (он должен начинаться с `user_` или `usr_`), "
-        "чтобы я мог зарегистрировать заявку.",
-        parse_mode="Markdown"
-    )
+    await callback.message.answer("✍️ Отправьте ваш ID (`user_...` или `usr_...`) в чат.")
     await callback.answer()
 
-
-# Обработка нажатия кнопок начисления генераций (grant_)
 @dp.callback_query(F.data.startswith("grant_"))
 async def process_grant(callback: types.CallbackQuery):
     if callback.from_user.id != ADMIN_ID:
@@ -193,27 +154,19 @@ async def process_grant(callback: types.CallbackQuery):
 
     active_requests.discard(web_user_id)
 
-    await callback.message.edit_text(
-        f"✅ Готово! Пользователю `{web_user_id}` одобрено **{amount}** генераций.",
-        parse_mode="Markdown",
-    )
+    await callback.message.edit_text(f"✅ Пользователю `{web_user_id}` одобрено {amount} генераций.", parse_mode="Markdown")
 
     try:
         await bot.send_message(
             chat_id=tg_user_id,
-            text=(
-                "🎉 **Администратор одобрил ваш запрос!**\n\n🎁 Вам начислено:"
-                f" **{amount}** генераций для ID `{web_user_id}`. Возвращайтесь на сайт! ❄️"
-            ),
+            text=f"🎉 Вам начислено **{amount}** генераций для ID `{web_user_id}`!",
             parse_mode="Markdown",
         )
     except Exception as e:
-        print(f"Ошибка отправки пользователю: {e}")
+        print(f"Ошибка: {e}")
 
-    await callback.answer("Генерации начислены!")
+    await callback.answer("Готово!")
 
-
-# Отклонение заявки (reject_)
 @dp.callback_query(F.data.startswith("reject_"))
 async def process_reject(callback: types.CallbackQuery):
     if callback.from_user.id != ADMIN_ID:
@@ -225,27 +178,31 @@ async def process_reject(callback: types.CallbackQuery):
 
     active_requests.discard(web_user_id)
 
-    await callback.message.edit_text(
-        f"❌ **Заявка отклонена** (ID: `{web_user_id}`).", 
-        parse_mode="Markdown"
-    )
-    
+    await callback.message.edit_text(f"❌ Заявка отклонена (`{web_user_id}`).", parse_mode="Markdown")
     try:
-        await bot.send_message(
-            int(tg_user_id_str),
-            "😔 К сожалению, администратор отклонил ваш запрос.",
-        )
+        await bot.send_message(int(tg_user_id_str), "😔 Администратор отклонил ваш запрос.")
     except Exception:
         pass
     
-    await callback.answer("Заявка отклонена")
+    await callback.answer("Отклонено")
 
+# --- ВЕБ-СЕРВЕР ДЛЯ RENDER (чтобы не было ошибки портов) ---
+async def handle(request):
+    return web.Response(text="Bot is running!")
 
-# Запуск бота
+async def web_server():
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8080)
+    await site.start()
+
 async def main():
-    print("🚀 Бот на aiogram успешно запущен!")
+    # Запускаем веб-сервер и бота одновременно
+    await web_server()
+    print("🚀 Бот и веб-сервер успешно запущены!")
     await dp.start_polling(bot)
-
 
 if __name__ == "__main__":
     asyncio.run(main())
