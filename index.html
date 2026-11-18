@@ -536,10 +536,38 @@
   <script>
     const ADMIN_PASS = "2408";
     const DAILY_FREE_LIMIT = 2;
-    const GOOGLE_CLIENT_ID = "648442574823-6glmoi3ab2dp0gqs87qcnkds4inr4f28.apps.googleusercontent.com";
+
 
     const canvas = document.getElementById("wallpaperCanvas");
     const ctx = canvas.getContext("2d");
+<!-- Кнопка входа через Telegram -->
+<div id="telegram-login-container" style="text-align: center; margin: 20px 0;"></div>
+
+<script>
+  function onTelegramAuth(user) {
+    fetch('/api/auth/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert('Ошибка авторизации: ' + data.message);
+      }
+    })
+    .catch(err => console.error('Ошибка:', err));
+  }
+</script>
+
+<script async src="https://telegram.org/js/telegram-widget.js?22" 
+        data-telegram-login="helper_4k_wallpapers_bot" 
+        data-size="large" 
+        data-onauth="onTelegramAuth(user)" 
+        data-request-access="write">
+</script>
     canvas.width = 720;
     canvas.height = 1280;
 
