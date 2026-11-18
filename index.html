@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Новогодняя Студия 4K Живых Обоев</title>
-  
+
   <style>
     :root {
       --bg: #070b14;
@@ -628,7 +628,29 @@
       return false;
     }
 
+    
+    function checkUrlBonus() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bonusParam = urlParams.get('bonus') || urlParams.get('add_bonus');
+      if (bonusParam) {
+        if (bonusParam === 'unlimited' || bonusParam === '99999') {
+          localStorage.setItem("lw_unlimited_" + userId, "true");
+          showToast("🎉 Активирован безлимитный доступ!");
+        } else {
+          const amount = parseInt(bonusParam, 10);
+          if (!isNaN(amount) && amount > 0) {
+            const cur = parseInt(localStorage.getItem("lw_bonus_" + userId) || "0", 10);
+            localStorage.setItem("lw_bonus_" + userId, String(cur + amount));
+            showToast(`🎉 Начислено +${amount} генераций для ${userId}!`);
+          }
+        }
+        updateQuotaUI();
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     updateQuotaUI();
+    checkUrlBonus();
 
     function onTelegramAuth(user) {
       localStorage.setItem("tg_user", JSON.stringify(user));
@@ -637,6 +659,7 @@
       localStorage.setItem("lw_user_id", newUserId);
       setTelegramLoggedInUI(user);
       updateQuotaUI();
+      checkUrlBonus();
       showToast(`Привет, ${user.first_name}!`);
     }
     window.onTelegramAuth = onTelegramAuth;
