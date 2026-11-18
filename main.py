@@ -45,7 +45,15 @@ async def handle_telegram_auth(request):
         
         # Здесь можно добавить логику сессии для пользователя
 
-        return web.json_response({'success': True, 'message': 'Authorized successfully'})
+        return web.json_response({
+            'success': True, 
+            'user': {
+                'id': data.get('id'),
+                'first_name': data.get('first_name'),
+                'username': data.get('username', '')
+            }
+        })
 
     except Exception as e:
         return web.json_response({'success': False, 'message': str(e)}, status=400)
+
