@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command, CommandStart
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -26,31 +27,25 @@ def get_admin_keyboard(web_user_id: str, tg_user_id: int) -> InlineKeyboardMarku
             [
                 InlineKeyboardButton(
                     text="➕ 5 ген.",
-                    callback_data=f"grant_{web_user_id}_{tg_user_id}_5",
+                    callback_data=f"grant:{web_user_id}:{tg_user_id}:5",
                 ),
                 InlineKeyboardButton(
                     text="➕ 10 ген.",
-                    callback_data=f"grant_{web_user_id}_{tg_user_id}_10",
+                    callback_data=f"grant:{web_user_id}:{tg_user_id}:10",
                 ),
                 InlineKeyboardButton(
                     text="➕ 50 ген.",
-                    callback_data=f"grant_{web_user_id}_{tg_user_id}_50",
+                    callback_data=f"grant:{web_user_id}:{tg_user_id}:50",
                 ),
             ],
             [
                 InlineKeyboardButton(
                     text="♾️ Безлимит",
-                    callback_data=f"grant_{web_user_id}_{tg_user_id}_99999",
+                    callback_data=f"grant:{web_user_id}:{tg_user_id}:99999",
                 ),
-                InlineKeyboardButton(
-                    text="✏️ Свое число",
-                    callback_data=f"custom_{web_user_id}_{tg_user_id}",
-                ),
-            ],
-            [
                 InlineKeyboardButton(
                     text="❌ Отклонить",
-                    callback_data=f"reject_{web_user_id}_{tg_user_id}",
+                    callback_data=f"reject:{web_user_id}:{tg_user_id}",
                 )
             ],
         ]
@@ -86,7 +81,7 @@ async def cmd_start(message: types.Message):
             "🔔 **Новая заявка на генерации!**\n\n"
             f"👤 **Пользователь:** {full_name} ({username})\n"
             f"🆔 **Telegram ID:** `{tg_user_id}`\n"
-            f"💻 **ID на сайте:** `{web_user_id}`\n\n"
+            f"💻 **ID / Юзернейм на сайте:** `{web_user_id}`\n\n"
             "Выберите, сколько генераций начислить:"
         )
         await bot.send_message(
@@ -104,12 +99,19 @@ async def cmd_start(message: types.Message):
             ]]
         )
         await message.answer(
-            "❄️ **Привет! Это официальный бот Студии Живых 4K Обоев.**",
+            "❄️ **Привет! Это официальный бот Студии Живых 4K Обоев.**\n\n"
+            "Нажмите кнопку ниже или просто отправьте в чат ваш ID сайта (`user_...`, `usr_...`) либо ваш `@username`.",
             reply_markup=kb,
             parse_mode="Markdown",
         )
 
-@dp.message(F.text.startswith(("user_", "usr_")))
+# Обработка отправки ID или Telegram username (с @ или без, либо user_/usr_)
+@dp.message(
+    F.text & ~F.text.startswith("/") & (
+        F.text.startswith(("user_", "usr_", "@")) |
+        F.text.regexp(r"^[a-zA-Z0-9_]{3,32}$")
+    )
+)
 async def process_text_id(message: types.Message):
     tg_user_id = message.from_user.id
     username = f"@{message.from_user.username}" if message.from_user.username else "Без юзернейма"
@@ -122,13 +124,17 @@ async def process_text_id(message: types.Message):
 
     active_requests.add(web_user_id)
 
-    await message.answer(f"🎄 Заявка отправлена! ID: `{web_user_id}`", parse_mode="Markdown")
+    await message.answer(
+        f"🎄 **Заявка отправлена!**\nID / Юзернейм: `{web_user_id}`\nОжидайте ответа администратора.",
+        parse_mode="Markdown"
+    )
 
     admin_text = (
-        "🔔 **Новая заявка!**\n\n"
-        f"👤 {full_name} ({username})\n"
-        f"🆔 `{tg_user_id}`\n"
-        f"💻 `{web_user_id}`"
+        "🔔 **Новая заявка на генерации!**\n\n"
+        f"👤 **Пользователь:** {full_name} ({username})\n"
+        f"🆔 **Telegram ID:** `{tg_user_id}`\n"
+        f"💻 **ID / Юзернейм:** `{web_user_id}`\n\n"
+        "Выберите, сколько генераций начислить:"
     )
     await bot.send_message(
         chat_id=ADMIN_ID,
@@ -139,52 +145,89 @@ async def process_text_id(message: types.Message):
 
 @dp.callback_query(F.data == "manual_id")
 async def process_manual_id(callback: types.CallbackQuery):
-    await callback.message.answer("✍️ Отправьте ваш ID (`user_...` или `usr_...`) в чат.")
+    await callback.message.answer(
+        "✍️ Отправьте ваш ID сайта (`user_...`, `usr_...`) или ваш Telegram `@username` в чат.",
+        parse_mode="Markdown"
+    )
     await callback.answer()
 
-@dp.callback_query(F.data.startswith("grant_"))
+@dp.callback_query(F.data.startswith("grant"))
 async def process_grant(callback: types.CallbackQuery):
     if callback.from_user.id != ADMIN_ID:
         return
-    
-    parts = callback.data.split("_")
-    amount = parts[-1]
-    tg_user_id = int(parts[-2])
-    web_user_id = "_".join(parts[1:-2])
+
+    if ":" in callback.data:
+        parts = callback.data.split(":")
+        web_user_id = parts[1]
+        tg_user_id = int(parts[2])
+        amount = parts[3]
+    else:
+        parts = callback.data.split("_")
+        amount = parts[-1]
+        tg_user_id = int(parts[-2])
+        web_user_id = "_".join(parts[1:-2])
 
     active_requests.discard(web_user_id)
 
-    await callback.message.edit_text(f"✅ Пользователю `{web_user_id}` одобрено {amount} генераций.", parse_mode="Markdown")
+    grant_display = "♾️ Безлимит" if amount == "99999" else f"**{amount}**"
+
+    await callback.message.edit_text(
+        f"✅ Пользователю `{web_user_id}` одобрено {grant_display} генераций.",
+        parse_mode="Markdown"
+    )
 
     try:
         await bot.send_message(
             chat_id=tg_user_id,
-            text=f"🎉 Вам начислено **{amount}** генераций для ID `{web_user_id}`!",
+            text=f"🎉 Вам начислено {grant_display} генераций для ID `{web_user_id}`!",
             parse_mode="Markdown",
         )
     except Exception as e:
-        print(f"Ошибка: {e}")
+        logging.error(f"Ошибка отправки сообщения пользователю: {e}")
 
     await callback.answer("Готово!")
 
-@dp.callback_query(F.data.startswith("reject_"))
+@dp.callback_query(F.data.startswith("reject"))
 async def process_reject(callback: types.CallbackQuery):
     if callback.from_user.id != ADMIN_ID:
         return
-    
-    parts = callback.data.split("_")
-    tg_user_id_str = parts[-1]
-    web_user_id = "_".join(parts[1:-1])
+
+    if ":" in callback.data:
+        parts = callback.data.split(":")
+        web_user_id = parts[1]
+        tg_user_id = int(parts[2])
+    else:
+        parts = callback.data.split("_")
+        tg_user_id = int(parts[-1])
+        web_user_id = "_".join(parts[1:-1])
 
     active_requests.discard(web_user_id)
 
     await callback.message.edit_text(f"❌ Заявка отклонена (`{web_user_id}`).", parse_mode="Markdown")
     try:
-        await bot.send_message(int(tg_user_id_str), "😔 Администратор отклонил ваш запрос.")
+        await bot.send_message(tg_user_id, "😔 Администратор отклонил ваш запрос.")
     except Exception:
         pass
-    
+
     await callback.answer("Отклонено")
+
+# Команда для администратора: /give @username 50
+@dp.message(Command("give", "grant"))
+async def cmd_give(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+
+    args = message.text.split()
+    if len(args) < 3:
+        await message.answer(
+            "Формат команды:\n`/give <ID или @username> <кол-во>`\nНапример: `/give @Benjamin_Bobbie 50`",
+            parse_mode="Markdown"
+        )
+        return
+
+    target = args[1]
+    amount = args[2]
+    await message.answer(f"✅ Начислено {amount} генераций для `{target}`!", parse_mode="Markdown")
 
 # --- ВЕБ-СЕРВЕР ДЛЯ RENDER (чтобы не было ошибки портов) ---
 async def handle(request):
@@ -199,7 +242,6 @@ async def web_server():
     await site.start()
 
 async def main():
-    # Запускаем веб-сервер и бота одновременно
     await web_server()
     print("🚀 Бот и веб-сервер успешно запущены!")
     await dp.start_polling(bot)
