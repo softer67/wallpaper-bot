@@ -1,4 +1,5 @@
 import asyncio
+import html
 import logging
 import re
 from aiogram import Bot, Dispatcher, F, types
@@ -63,33 +64,39 @@ async def cmd_start(message: types.Message):
 
         if web_user_id in active_requests:
             await message.answer(
-                "⏳ **Ваша заявка уже находится на рассмотрении!**\n\nПожалуйста, дожидайтесь ответа администратора.",
-                parse_mode="Markdown",
+                "⏳ <b>Ваша заявка уже находится на рассмотрении!</b>\n\nПожалуйста, дожидайтесь ответа администратора.",
+                parse_mode="HTML",
             )
             return
 
-        active_requests.add(web_user_id)
-
-        await message.answer(
-            "🎄 **Заявка успешно отправлена!**\n\n"
-            f"Ваш ID на сайте: `{web_user_id}`\n"
-            "Ожидайте ответа администратора.",
-            parse_mode="Markdown",
-        )
-
         admin_text = (
-            "🔔 **Новая заявка на генерации!**\n\n"
-            f"👤 **Пользователь:** {full_name} ({username})\n"
-            f"🆔 **Telegram ID:** `{tg_user_id}`\n"
-            f"💻 **ID / Юзернейм на сайте:** `{web_user_id}`\n\n"
+            "🔔 <b>Новая заявка на генерации!</b>\n\n"
+            f"👤 <b>Пользователь:</b> {html.escape(full_name)} ({html.escape(username)})\n"
+            f"🆔 <b>Telegram ID:</b> <code>{tg_user_id}</code>\n"
+            f"💻 <b>ID / Юзернейм на сайте:</b> <code>{html.escape(web_user_id)}</code>\n\n"
             "Выберите, сколько генераций начислить:"
         )
-        await bot.send_message(
-            chat_id=ADMIN_ID,
-            text=admin_text,
-            reply_markup=get_admin_keyboard(web_user_id, tg_user_id),
-            parse_mode="Markdown",
-        )
+
+        try:
+            await bot.send_message(
+                chat_id=ADMIN_ID,
+                text=admin_text,
+                reply_markup=get_admin_keyboard(web_user_id, tg_user_id),
+                parse_mode="HTML",
+            )
+            active_requests.add(web_user_id)
+            await message.answer(
+                "🎄 <b>Заявка успешно отправлена!</b>\n\n"
+                f"Ваш ID на сайте: <code>{html.escape(web_user_id)}</code>\n"
+                "Ожидайте ответа администратора.",
+                parse_mode="HTML",
+            )
+        except Exception as e:
+            logging.error(f"Ошибка отправки администратору: {e}")
+            await message.answer(
+                "⚠️ Не удалось доставить заявку администратору. Пожалуйста, попробуйте чуть позже.",
+                parse_mode="HTML",
+            )
     else:
         kb = InlineKeyboardMarkup(
             inline_keyboard=[[
@@ -99,10 +106,10 @@ async def cmd_start(message: types.Message):
             ]]
         )
         await message.answer(
-            "❄️ **Привет! Это официальный бот Студии Живых 4K Обоев.**\n\n"
-            "Нажмите кнопку ниже или просто отправьте в чат ваш ID сайта (`user_...`, `usr_...`) либо ваш `@username`.",
+            "❄️ <b>Привет! Это официальный бот Студии Живых 4K Обоев.</b>\n\n"
+            "Нажмите кнопку ниже или просто отправьте в чат ваш ID сайта (<code>user_...</code>, <code>usr_...</code>) либо ваш <code>@username</code>.",
             reply_markup=kb,
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
 
 # Обработка отправки ID или Telegram username (с @ или без, либо user_/usr_)
@@ -119,35 +126,41 @@ async def process_text_id(message: types.Message):
     web_user_id = message.text.strip()
 
     if web_user_id in active_requests:
-        await message.answer("⏳ Ваша заявка уже на рассмотрении!", parse_mode="Markdown")
+        await message.answer("⏳ Ваша заявка уже на рассмотрении!", parse_mode="HTML")
         return
 
-    active_requests.add(web_user_id)
-
-    await message.answer(
-        f"🎄 **Заявка отправлена!**\nID / Юзернейм: `{web_user_id}`\nОжидайте ответа администратора.",
-        parse_mode="Markdown"
-    )
-
     admin_text = (
-        "🔔 **Новая заявка на генерации!**\n\n"
-        f"👤 **Пользователь:** {full_name} ({username})\n"
-        f"🆔 **Telegram ID:** `{tg_user_id}`\n"
-        f"💻 **ID / Юзернейм:** `{web_user_id}`\n\n"
+        "🔔 <b>Новая заявка на генерации!</b>\n\n"
+        f"👤 <b>Пользователь:</b> {html.escape(full_name)} ({html.escape(username)})\n"
+        f"🆔 <b>Telegram ID:</b> <code>{tg_user_id}</code>\n"
+        f"💻 <b>ID / Юзернейм:</b> <code>{html.escape(web_user_id)}</code>\n\n"
         "Выберите, сколько генераций начислить:"
     )
-    await bot.send_message(
-        chat_id=ADMIN_ID,
-        text=admin_text,
-        reply_markup=get_admin_keyboard(web_user_id, tg_user_id),
-        parse_mode="Markdown",
-    )
+
+    try:
+        await bot.send_message(
+            chat_id=ADMIN_ID,
+            text=admin_text,
+            reply_markup=get_admin_keyboard(web_user_id, tg_user_id),
+            parse_mode="HTML",
+        )
+        active_requests.add(web_user_id)
+        await message.answer(
+            f"🎄 <b>Заявка отправлена!</b>\nID / Юзернейм: <code>{html.escape(web_user_id)}</code>\nОжидайте ответа администратора.",
+            parse_mode="HTML"
+        )
+    except Exception as e:
+        logging.error(f"Ошибка отправки администратору: {e}")
+        await message.answer(
+            "⚠️ Не удалось доставить заявку администратору. Попробуйте еще раз через несколько секунд.",
+            parse_mode="HTML"
+        )
 
 @dp.callback_query(F.data == "manual_id")
 async def process_manual_id(callback: types.CallbackQuery):
     await callback.message.answer(
-        "✍️ Отправьте ваш ID сайта (`user_...`, `usr_...`) или ваш Telegram `@username` в чат.",
-        parse_mode="Markdown"
+        "✍️ Отправьте ваш ID сайта (<code>user_...</code>, <code>usr_...</code>) или ваш Telegram <code>@username</code> в чат.",
+        parse_mode="HTML"
     )
     await callback.answer()
 
@@ -184,19 +197,19 @@ async def process_grant(callback: types.CallbackQuery):
     )
 
     await callback.message.edit_text(
-        f"✅ Пользователю `{web_user_id}` одобрено {grant_display} генераций.",
-        parse_mode="Markdown"
+        f"✅ Пользователю <code>{html.escape(web_user_id)}</code> одобрено {grant_display} генераций.",
+        parse_mode="HTML"
     )
 
     try:
         await bot.send_message(
             chat_id=tg_user_id,
             text=(
-                f"🎉 **Вам начислено {grant_display} генераций для ID `{web_user_id}`!**\n\n"
+                f"🎉 <b>Вам начислено {grant_display} генераций для ID <code>{html.escape(web_user_id)}</code>!</b>\n\n"
                 f"👇 Нажмите кнопку ниже, чтобы генерации активировались на сайте:"
             ),
             reply_markup=kb,
-            parse_mode="Markdown",
+            parse_mode="HTML",
         )
     except Exception as e:
         logging.error(f"Ошибка отправки сообщения пользователю: {e}")
@@ -219,13 +232,25 @@ async def process_reject(callback: types.CallbackQuery):
 
     active_requests.discard(web_user_id)
 
-    await callback.message.edit_text(f"❌ Заявка отклонена (`{web_user_id}`).", parse_mode="Markdown")
+    await callback.message.edit_text(
+        f"❌ Заявка отклонена (<code>{html.escape(web_user_id)}</code>).",
+        parse_mode="HTML"
+    )
     try:
         await bot.send_message(tg_user_id, "😔 Администратор отклонил ваш запрос.")
     except Exception:
         pass
 
     await callback.answer("Отклонено")
+
+# Команда для сброса зависших заявок: /clear
+@dp.message(Command("clear", "reset"))
+async def cmd_clear(message: types.Message):
+    if message.from_user.id != ADMIN_ID:
+        return
+    count = len(active_requests)
+    active_requests.clear()
+    await message.answer(f"🧹 Очищено {count} активных заявок.", parse_mode="HTML")
 
 # Команда для администратора: /give @username 50
 @dp.message(Command("give", "grant"))
@@ -236,8 +261,8 @@ async def cmd_give(message: types.Message):
     args = message.text.split()
     if len(args) < 3:
         await message.answer(
-            "Формат команды:\n`/give <ID или @username> <кол-во>`\nНапример: `/give @Benjamin_Bobbie 50`",
-            parse_mode="Markdown"
+            "Формат команды:\n<code>/give &lt;ID или @username&gt; &lt;кол-во&gt;</code>\nНапример: <code>/give @Benjamin_Bobbie 50</code>",
+            parse_mode="HTML"
         )
         return
 
@@ -245,8 +270,8 @@ async def cmd_give(message: types.Message):
     amount = args[2]
     bonus_url = f"https://fourk-wallpaper-site.onrender.com/?bonus={amount}"
     await message.answer(
-        f"✅ Начислено {amount} генераций для `{target}`!\nСсылка для активации:\n{bonus_url}",
-        parse_mode="Markdown"
+        f"✅ Начислено {amount} генераций для <code>{html.escape(target)}</code>!\nСсылка для активации:\n{bonus_url}",
+        parse_mode="HTML"
     )
 
 # --- ВЕБ-СЕРВЕР ДЛЯ RENDER (чтобы не было ошибки портов) ---
@@ -263,7 +288,6 @@ async def web_server():
 
 # Запуск бота
 async def main():
-    # Запускаем веб-сервер и бота одновременно
     await web_server()
     print("🚀 Бот и веб-сервер успешно запущены!")
     await dp.start_polling(bot)
