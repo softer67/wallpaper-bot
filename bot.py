@@ -184,7 +184,7 @@ async def process_grant(callback: types.CallbackQuery):
 
     grant_display = "♾️ Безлимит" if amount == "99999" else f"{amount}"
     bonus_val = "unlimited" if amount == "99999" else amount
-    bonus_url = f"https://fourk-wallpaper-site.onrender.com/?bonus={bonus_val}"
+    bonus_url = f"https://softer67.github.io/wallpaper-bot/?bonus={bonus_val}"
 
     # Кнопка для мгновенной активации генераций на сайте
     kb = InlineKeyboardMarkup(
@@ -236,6 +236,7 @@ async def process_reject(callback: types.CallbackQuery):
         f"❌ Заявка отклонена (<code>{html.escape(web_user_id)}</code>).",
         parse_mode="HTML"
     )
+
     try:
         await bot.send_message(tg_user_id, "😔 Администратор отклонил ваш запрос.")
     except Exception:
@@ -249,7 +250,8 @@ async def cmd_clear(message: types.Message):
     if message.from_user.id != ADMIN_ID:
         return
     count = len(active_requests)
-    active_requests.clear()
+    active_requests.clear(
+    )
     await message.answer(f"🧹 Очищено {count} активных заявок.", parse_mode="HTML")
 
 # Команда для администратора: /give @username 50
@@ -268,7 +270,7 @@ async def cmd_give(message: types.Message):
 
     target = args[1]
     amount = args[2]
-    bonus_url = f"https://fourk-wallpaper-site.onrender.com/?bonus={amount}"
+    bonus_url = f"https://softer67.github.io/wallpaper-bot/?bonus={amount}"
     await message.answer(
         f"✅ Начислено {amount} генераций для <code>{html.escape(target)}</code>!\nСсылка для активации:\n{bonus_url}",
         parse_mode="HTML"
