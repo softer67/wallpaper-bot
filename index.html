@@ -460,12 +460,18 @@
 
     <div class="controls">
       <div class="control-group">
-        <div class="control-header"><span>Эффект атмосферы</span></div>
+        <div class="control-header">
+          <span>Эффект атмосферы</span>
+          <label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.8rem; color: var(--accent); user-select: none;">
+            <input type="checkbox" id="mixModeCheckbox" style="accent-color: var(--accent); cursor: pointer; width: 14px; height: 14px;" />
+            <span>🔀 Объединять эффекты</span>
+          </label>
+        </div>
         <div class="effects-grid">
           <div class="effect-chip active" data-effect="snow">❄️ Снегопад</div>
           <div class="effect-chip" data-effect="crackers">🎉 Хлопушки</div>
           <div class="effect-chip" data-effect="leaves">🍂 Листопад</div>
-          <div class="effect-chip" data-effect="bokeh">✨ Боке огни</div>
+          <div class="effect-chip" data-effect="bokeh">✨ Огни гирлянд</div>
           <div class="effect-chip" data-effect="blizzard">🌨️ Метель</div>
         </div>
       </div>
@@ -560,6 +566,8 @@
 
     let bgImage = null;
     let effectType = "snow";
+    let activeEffects = ["snow"];
+    let isMixMode = false;
     let particleCount = 140;
     let speedMultiplier = 1.0;
     let particles = [];
@@ -743,13 +751,24 @@
       "#ff9100"  // Мандариновый оранжевый
     ];
 
-    function createParticle(w, h) {
+    const GARLAND_HUES = [
+      42,  // Теплый золотистый огонек
+      352, // Рождественский рубиново-красный
+      142, // Изумрудно-зеленый огонек хвои
+      210, // Морозный сапфирово-синий
+      25,  // Мандариновый праздничный огонь
+      285  // Аметистовый волшебный огонек
+    ];
+
+    function createParticle(w, h, specificEffect) {
+      const eff = specificEffect || (activeEffects.length > 0 ? activeEffects[Math.floor(Math.random() * activeEffects.length)] : effectType);
+
       // Уровни глубины для реалистичной многоплановости
       let layer = Math.random() < 0.25 ? 2 : (Math.random() < 0.55 ? 0 : 1);
-      const isBokeh = effectType === "bokeh";
-      const isBlizzard = effectType === "blizzard";
-      const isLeaves = effectType === "leaves";
-      const isCrackers = effectType === "crackers";
+      const isBokeh = eff === "bokeh";
+      const isBlizzard = eff === "blizzard";
+      const isLeaves = eff === "leaves";
+      const isCrackers = eff === "crackers";
 
       let r = 2;
       let alpha = 0.7;
@@ -759,6 +778,7 @@
       let rectW = 8;
       let rectH = 15;
       let serpentineLen = 32;
+      let isCrystal = false;
 
       if (isCrackers) {
         // Новогодние хлопушки: россыпь металлической фольги, лент серпантина и ярких искр
@@ -779,11 +799,11 @@
         vx = (Math.random() - 0.5) * 1.1;
         alpha = layer === 0 ? (0.65 + Math.random() * 0.25) : (0.88 + Math.random() * 0.12);
       } else if (isBokeh) {
-        // Оптическое боке: размытые круги объектива
-        r = layer === 2 ? (14 + Math.random() * 22) : (layer === 0 ? (5 + Math.random() * 8) : (8 + Math.random() * 14));
-        vy = -(0.3 + Math.random() * 0.8);
-        vx = (Math.random() - 0.5) * 0.5;
-        alpha = layer === 2 ? (0.2 + Math.random() * 0.25) : (layer === 0 ? (0.15 + Math.random() * 0.2) : (0.25 + Math.random() * 0.35));
+        // Огни гирлянд: яркие светящиеся огоньки с мягким сиянием и переливами
+        r = layer === 2 ? (12 + Math.random() * 18) : (layer === 0 ? (5 + Math.random() * 7) : (8 + Math.random() * 12));
+        vy = -(0.2 + Math.random() * 0.6); // медленное парение в воздухе
+        vx = (Math.random() - 0.5) * 0.45;
+        alpha = layer === 2 ? (0.75 + Math.random() * 0.25) : (layer === 0 ? (0.55 + Math.random() * 0.25) : (0.65 + Math.random() * 0.3));
       } else if (isBlizzard) {
         // Метель: стремительные ледяные полосы ветра
         r = layer === 2 ? (2.5 + Math.random() * 4.5) : (layer === 0 ? (1 + Math.random() * 2) : (1.8 + Math.random() * 3));
@@ -791,8 +811,7 @@
         vx = (-3.2 - Math.random() * 3.5) * (layer === 2 ? 1.25 : 0.85);
         alpha = layer === 0 ? (0.35 + Math.random() * 0.35) : (0.6 + Math.random() * 0.4);
       } else {
-        // Настоящий пушистый снегопад (как в 4K видео Санкт-Петербурга)
-        // 4 глубинных слоя: 0=снежная пелена фона (50%), 1=основной снегопад (30%), 2=крупные пушистые хлопья (13%), 3=боке у самой линзы (7%)
+        // Настоящий пушистый снегопад с добавлением резных кристаллических снежинок
         const sRand = Math.random();
         layer = sRand < 0.50 ? 0 : (sRand < 0.80 ? 1 : (sRand < 0.93 ? 2 : 3));
 
@@ -803,17 +822,19 @@
           vx = (Math.random() - 0.5) * 1.4;
           alpha = 0.18 + Math.random() * 0.22;
         } else if (layer === 2) {
-          // Крупные пушистые снежные хлопья переднего плана
+          // Крупные хлопья переднего плана
           r = 6.5 + Math.random() * 6.5;
           vy = 1.3 + Math.random() * 1.5;
           vx = (Math.random() - 0.5) * 0.9;
           alpha = 0.65 + Math.random() * 0.25;
+          isCrystal = Math.random() < 0.32; // резная снежинка
         } else if (layer === 1) {
           // Средний план: нежные хлопья снега
           r = 2.8 + Math.random() * 3.2;
           vy = 0.9 + Math.random() * 1.2;
           vx = (Math.random() - 0.5) * 0.6;
           alpha = 0.75 + Math.random() * 0.22;
+          isCrystal = Math.random() < 0.28; // резная снежинка
         } else {
           // Задний план: мягкая снежная пыль зимнего города
           r = 1.2 + Math.random() * 1.5;
@@ -824,6 +845,7 @@
       }
 
       return {
+        effect: eff,
         x: Math.random() * w,
         y: Math.random() * h,
         r,
@@ -834,31 +856,49 @@
         vx,
         alpha,
         layer,
+        isCrystal,
         phase: Math.random() * Math.PI * 2,
-        hue: [38, 48, 195, 340][Math.floor(Math.random() * 4)],
+        hue: GARLAND_HUES[Math.floor(Math.random() * GARLAND_HUES.length)],
         color: isCrackers
           ? CRACKER_COLORS[Math.floor(Math.random() * CRACKER_COLORS.length)]
           : LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
         crackerType,
         leafType: Math.random() < 0.65 ? 0 : 1, // 0 = кленовый резной лист (65%), 1 = березовый резной лист (35%)
         rot: Math.random() * Math.PI * 2,
-        rotSpeed: isCrackers ? ((Math.random() - 0.5) * 0.08) : ((Math.random() - 0.5) * 0.04),
+        rotSpeed: isCrackers ? ((Math.random() - 0.5) * 0.08) : (isCrystal ? ((Math.random() - 0.5) * 0.035) : ((Math.random() - 0.5) * 0.04)),
         flipPhase: Math.random() * Math.PI * 2,
         flipSpeed: isCrackers ? (0.05 + Math.random() * 0.08) : (0.025 + Math.random() * 0.035),
         pulsePhase: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.02 + Math.random() * 0.03,
+        pulseSpeed: isBokeh ? (0.04 + Math.random() * 0.05) : (0.02 + Math.random() * 0.03),
         // Целочисленные циклы для 100% бесшовного 5-секундного 4K цикла
         loopCyclesY: isBlizzard ? (2 + Math.floor(Math.random() * 2)) : (isBokeh ? -(1 + Math.floor(Math.random() * 2)) : (1 + Math.floor(Math.random() * 2))),
         loopCyclesX: isBlizzard ? -(2 + Math.floor(Math.random() * 2)) : 0,
         swayCycles: isCrackers ? (2 + Math.floor(Math.random() * 3)) : (1 + Math.floor(Math.random() * 3)),
         loopRotCycles: 1 + Math.floor(Math.random() * 2),
         loopFlipCycles: isCrackers ? (3 + Math.floor(Math.random() * 4)) : (2 + Math.floor(Math.random() * 3)),
-        pulseCycles: 1 + Math.floor(Math.random() * 2)
+        pulseCycles: isBokeh ? (2 + Math.floor(Math.random() * 3)) : (1 + Math.floor(Math.random() * 2))
       };
     }
 
     function initParticles(w, h) {
-      particles = Array.from({ length: particleCount }, () => createParticle(w, h));
+      particles = [];
+      const count = particleCount;
+      const effects = activeEffects.length > 0 ? activeEffects : [effectType];
+      for (let i = 0; i < count; i++) {
+        const eff = effects[i % effects.length];
+        particles.push(createParticle(w, h, eff));
+      }
+    }
+
+    function syncParticleCount(w, h) {
+      const effects = activeEffects.length > 0 ? activeEffects : [effectType];
+      while (particles.length < particleCount) {
+        const eff = effects[particles.length % effects.length];
+        particles.push(createParticle(w, h, eff));
+      }
+      if (particles.length > particleCount) {
+        particles.length = particleCount;
+      }
     }
 
     function syncParticleCount(w, h) {
@@ -894,6 +934,54 @@
         targetCtx.fillStyle = grad;
         targetCtx.fillRect(0, 0, w, h);
       }
+    }
+
+    // Отрисовка филигранной шестиугольной кристаллической снежинки (дендрита)
+    function drawCrystalSnowflake(targetCtx, x, y, r, alpha, rot) {
+      targetCtx.save();
+      targetCtx.translate(x, y);
+      targetCtx.rotate(rot);
+      targetCtx.globalAlpha = alpha;
+      targetCtx.strokeStyle = "rgba(255, 255, 255, 0.95)";
+      targetCtx.lineWidth = Math.max(0.9, r * 0.1);
+      targetCtx.lineCap = "round";
+
+      // Мягкое свечение кристалла на темном фоне
+      targetCtx.shadowColor = "rgba(255, 255, 255, 0.85)";
+      targetCtx.shadowBlur = Math.max(2, r * 0.45);
+
+      targetCtx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI) / 3;
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+
+        // Главный кристаллический луч
+        targetCtx.moveTo(0, 0);
+        targetCtx.lineTo(cos * r, sin * r);
+
+        // Боковые симметричные веточки
+        const b1 = r * 0.52;
+        const b1x = cos * b1;
+        const b1y = sin * b1;
+        const bLen = r * 0.38;
+        targetCtx.moveTo(b1x, b1y);
+        targetCtx.lineTo(b1x + Math.cos(angle + Math.PI / 3.5) * bLen, b1y + Math.sin(angle + Math.PI / 3.5) * bLen);
+        targetCtx.moveTo(b1x, b1y);
+        targetCtx.lineTo(b1x + Math.cos(angle - Math.PI / 3.5) * bLen, b1y + Math.sin(angle - Math.PI / 3.5) * bLen);
+
+        // Малые верхние веточки кончика
+        const b2 = r * 0.78;
+        const b2x = cos * b2;
+        const b2y = sin * b2;
+        const bLen2 = r * 0.22;
+        targetCtx.moveTo(b2x, b2y);
+        targetCtx.lineTo(b2x + Math.cos(angle + Math.PI / 3.5) * bLen2, b2y + Math.sin(angle + Math.PI / 3.5) * bLen2);
+        targetCtx.moveTo(b2x, b2y);
+        targetCtx.lineTo(b2x + Math.cos(angle - Math.PI / 3.5) * bLen2, b2y + Math.sin(angle - Math.PI / 3.5) * bLen2);
+      }
+      targetCtx.stroke();
+      targetCtx.restore();
     }
 
     // Отрисовка фотореалистичного 5-лопастного резного кленового листа с пальчатыми жилками
@@ -1074,10 +1162,11 @@
     function renderParticle(targetCtx, p, x, y, scaleRatio, flipX = 1, rot = 0, pulse = 1) {
       targetCtx.save();
       const r = p.r * scaleRatio;
+      const eff = p.effect || effectType;
 
-      if (effectType === "crackers") {
+      if (eff === "crackers") {
         drawCrackerParticle(targetCtx, p, x, y, scaleRatio, flipX, rot, pulse);
-      } else if (effectType === "leaves") {
+      } else if (eff === "leaves") {
         targetCtx.translate(x, y);
         targetCtx.rotate(rot);
         targetCtx.globalAlpha = p.alpha;
@@ -1086,19 +1175,40 @@
         } else {
           drawBirchLeaf(targetCtx, r, p.color, flipX);
         }
-      } else if (effectType === "bokeh") {
+      } else if (eff === "bokeh") {
+        // Сияющие огни новогодней гирлянды: яркая светящаяся сердцевина, сочный цветной ореол и мягкое мерцание
         const curAlpha = p.alpha * pulse;
-        // Оптическое боке: яркий внешний ободок линзы диафрагмы, полупрозрачный центр
-        const g = targetCtx.createRadialGradient(x, y, r * 0.2, x, y, r);
-        g.addColorStop(0, `hsla(${p.hue}, 92%, 78%, ${curAlpha * 0.45})`);
-        g.addColorStop(0.7, `hsla(${p.hue}, 92%, 72%, ${curAlpha * 0.6})`);
-        g.addColorStop(0.92, `hsla(${p.hue}, 95%, 85%, ${curAlpha * 0.95})`);
-        g.addColorStop(1, `hsla(${p.hue}, 95%, 85%, 0)`);
+        const lightR = r * (0.85 + 0.25 * pulse);
+
+        // Внешний мягкий ореол свечения гирлянды (bloom)
+        const g = targetCtx.createRadialGradient(x, y, 0, x, y, lightR);
+        g.addColorStop(0, "rgba(255, 255, 255, 1.0)"); // раскаленная белая нить/чип
+        g.addColorStop(0.18, `hsla(${p.hue}, 100%, 90%, ${curAlpha * 0.98})`);
+        g.addColorStop(0.38, `hsla(${p.hue}, 100%, 65%, ${curAlpha * 0.85})`);
+        g.addColorStop(0.68, `hsla(${p.hue}, 100%, 55%, ${curAlpha * 0.35})`);
+        g.addColorStop(0.92, `hsla(${p.hue}, 100%, 50%, ${curAlpha * 0.1})`);
+        g.addColorStop(1, `hsla(${p.hue}, 100%, 50%, 0)`);
+
         targetCtx.fillStyle = g;
         targetCtx.beginPath();
-        targetCtx.arc(x, y, r, 0, Math.PI * 2);
+        targetCtx.arc(x, y, lightR, 0, Math.PI * 2);
         targetCtx.fill();
-      } else if (effectType === "blizzard") {
+
+        // Лучистый микро-блик для самых ярких огней переднего плана
+        if (p.layer === 2 && pulse > 0.82) {
+          targetCtx.save();
+          targetCtx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+          targetCtx.lineWidth = Math.max(0.8, 1.2 * scaleRatio);
+          const flareLen = lightR * 0.9;
+          targetCtx.beginPath();
+          targetCtx.moveTo(x - flareLen, y);
+          targetCtx.lineTo(x + flareLen, y);
+          targetCtx.moveTo(x, y - flareLen);
+          targetCtx.lineTo(x, y + flareLen);
+          targetCtx.stroke();
+          targetCtx.restore();
+        }
+      } else if (eff === "blizzard") {
         // Стремительные полосы метели вдоль вектора ветра (motion blur)
         const streakLen = (18 + p.r * 6) * scaleRatio * speedMultiplier;
         const norm = Math.hypot(p.vx, p.vy) || 1;
@@ -1118,38 +1228,44 @@
         targetCtx.lineTo(x, y);
         targetCtx.stroke();
       } else {
-        // Кинематографичный снегопад (как в 4K зимних видео Санкт-Петербурга)
-        // Каждый хлопья рендерится с мягкими пушистыми краями через радиальный градиент
+        // Кинематографичный снегопад
         const curAlpha = p.alpha;
-        const g = targetCtx.createRadialGradient(x, y, 0, x, y, r);
-        if (p.layer === 3) {
-          // Огромное боке прямо у объектива камеры (глубокий расфокус)
-          g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha * 0.7})`);
-          g.addColorStop(0.35, `rgba(255, 255, 255, ${curAlpha * 0.45})`);
-          g.addColorStop(0.7, `rgba(255, 255, 255, ${curAlpha * 0.15})`);
-          g.addColorStop(1, "rgba(255, 255, 255, 0)");
-        } else if (p.layer === 2) {
-          // Крупные пушистые хлопья переднего плана
-          g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
-          g.addColorStop(0.45, `rgba(255, 255, 255, ${curAlpha * 0.85})`);
-          g.addColorStop(0.8, `rgba(255, 255, 255, ${curAlpha * 0.35})`);
-          g.addColorStop(1, "rgba(255, 255, 255, 0)");
-        } else if (p.layer === 1) {
-          // Средний план: нежные хлопья с мягкими растушеванными краями
-          g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
-          g.addColorStop(0.65, `rgba(255, 255, 255, ${curAlpha * 0.85})`);
-          g.addColorStop(0.9, `rgba(255, 255, 255, ${curAlpha * 0.3})`);
-          g.addColorStop(1, "rgba(255, 255, 255, 0)");
+        if (p.isCrystal) {
+          // Изящная резная кристаллическая снежинка
+          const crystalR = (p.layer === 2 ? 8.5 : 5.8) * scaleRatio;
+          drawCrystalSnowflake(targetCtx, x, y, crystalR, curAlpha, rot);
         } else {
-          // Дальний план: мягкая снежная дымка
-          g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
-          g.addColorStop(0.75, `rgba(255, 255, 255, ${curAlpha * 0.65})`);
-          g.addColorStop(1, "rgba(255, 255, 255, 0)");
+          // Пушистые хлопья снега
+          const g = targetCtx.createRadialGradient(x, y, 0, x, y, r);
+          if (p.layer === 3) {
+            // Огромное боке прямо у объектива камеры (глубокий расфокус)
+            g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha * 0.7})`);
+            g.addColorStop(0.35, `rgba(255, 255, 255, ${curAlpha * 0.45})`);
+            g.addColorStop(0.7, `rgba(255, 255, 255, ${curAlpha * 0.15})`);
+            g.addColorStop(1, "rgba(255, 255, 255, 0)");
+          } else if (p.layer === 2) {
+            // Крупные пушистые хлопья переднего плана
+            g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
+            g.addColorStop(0.45, `rgba(255, 255, 255, ${curAlpha * 0.85})`);
+            g.addColorStop(0.8, `rgba(255, 255, 255, ${curAlpha * 0.35})`);
+            g.addColorStop(1, "rgba(255, 255, 255, 0)");
+          } else if (p.layer === 1) {
+            // Средний план: нежные хлопья с мягкими растушеванными краями
+            g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
+            g.addColorStop(0.65, `rgba(255, 255, 255, ${curAlpha * 0.85})`);
+            g.addColorStop(0.9, `rgba(255, 255, 255, ${curAlpha * 0.3})`);
+            g.addColorStop(1, "rgba(255, 255, 255, 0)");
+          } else {
+            // Дальний план: мягкая снежная дымка
+            g.addColorStop(0, `rgba(255, 255, 255, ${curAlpha})`);
+            g.addColorStop(0.75, `rgba(255, 255, 255, ${curAlpha * 0.65})`);
+            g.addColorStop(1, "rgba(255, 255, 255, 0)");
+          }
+          targetCtx.fillStyle = g;
+          targetCtx.beginPath();
+          targetCtx.arc(x, y, r, 0, Math.PI * 2);
+          targetCtx.fill();
         }
-        targetCtx.fillStyle = g;
-        targetCtx.beginPath();
-        targetCtx.arc(x, y, r, 0, Math.PI * 2);
-        targetCtx.fill();
       }
       targetCtx.restore();
     }
@@ -1164,7 +1280,8 @@
         p.rot += p.rotSpeed * speedMultiplier;
         p.pulsePhase += p.pulseSpeed * speedMultiplier;
 
-        const sway = Math.sin(p.phase) * (effectType === "leaves" ? 1.4 : (effectType === "crackers" ? 1.6 : (effectType === "blizzard" ? 0.3 : (p.layer === 3 ? 1.3 : (p.layer === 2 ? 1.0 : 0.6)))));
+        const eff = p.effect || effectType;
+        const sway = Math.sin(p.phase) * (eff === "leaves" ? 1.4 : (eff === "crackers" ? 1.6 : (eff === "blizzard" ? 0.3 : (p.layer === 3 ? 1.3 : (p.layer === 2 ? 1.0 : 0.6)))));
         p.y += p.vy * speedMultiplier * dtScale;
         p.x += (p.vx + sway) * speedMultiplier * dtScale;
 
@@ -1196,7 +1313,8 @@
         const cyclesX = p.loopCyclesX * speedCycles;
         const swayFreq = p.swayCycles * speedCycles;
 
-        const layerSwayAmp = (effectType === "blizzard" ? 36 : (effectType === "leaves" ? 45 : (effectType === "crackers" ? 48 : (p.layer === 3 ? 42 : (p.layer === 2 ? 32 : 22))))) * scaleRatio;
+        const eff = p.effect || effectType;
+        const layerSwayAmp = (eff === "blizzard" ? 36 : (eff === "leaves" ? 45 : (eff === "crackers" ? 48 : (p.layer === 3 ? 42 : (p.layer === 2 ? 32 : 22))))) * scaleRatio;
         const swayOffset = Math.sin(p.phase + t * Math.PI * 2 * swayFreq) * layerSwayAmp;
         const rawX = baseX + cyclesX * spanW * t + swayOffset;
         const rawY = baseY + cyclesY * spanH * t;
@@ -1246,12 +1364,50 @@
       reader.readAsDataURL(file);
     });
 
+    const mixModeCheckbox = document.getElementById("mixModeCheckbox");
+    if (mixModeCheckbox) {
+      mixModeCheckbox.addEventListener("change", () => {
+        isMixMode = mixModeCheckbox.checked;
+        if (isMixMode) {
+          showToast("Режим объединения эффектов включен! Нажимайте на кнопки, чтобы миксовать.");
+        } else {
+          // Оставляем только первый активный эффект
+          const primary = activeEffects[0] || "snow";
+          activeEffects = [primary];
+          effectType = primary;
+          document.querySelectorAll(".effect-chip").forEach(c => {
+            c.classList.toggle("active", c.dataset.effect === primary);
+          });
+          initParticles(canvas.width, canvas.height);
+          showToast("Одиночный режим эффектов");
+        }
+      });
+    }
+
     document.querySelectorAll(".effect-chip").forEach(chip => {
       chip.addEventListener("click", () => {
-        document.querySelectorAll(".effect-chip").forEach(c => c.classList.remove("active"));
-        chip.classList.add("active");
-        effectType = chip.dataset.effect;
-        initParticles(canvas.width, canvas.height);
+        const eff = chip.dataset.effect;
+        if (isMixMode) {
+          if (activeEffects.includes(eff)) {
+            if (activeEffects.length === 1) {
+              showToast("Должен оставаться хотя бы 1 активный эффект!");
+              return;
+            }
+            activeEffects = activeEffects.filter(e => e !== eff);
+            chip.classList.remove("active");
+          } else {
+            activeEffects.push(eff);
+            chip.classList.add("active");
+          }
+          effectType = activeEffects[0];
+          initParticles(canvas.width, canvas.height);
+        } else {
+          document.querySelectorAll(".effect-chip").forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          activeEffects = [eff];
+          effectType = eff;
+          initParticles(canvas.width, canvas.height);
+        }
       });
     });
 
