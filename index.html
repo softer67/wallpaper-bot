@@ -243,7 +243,7 @@
 
     .effects-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
       gap: 6px;
     }
 
@@ -463,6 +463,7 @@
         <div class="control-header"><span>Эффект атмосферы</span></div>
         <div class="effects-grid">
           <div class="effect-chip active" data-effect="snow">❄️ Снегопад</div>
+          <div class="effect-chip" data-effect="crackers">🎉 Хлопушки</div>
           <div class="effect-chip" data-effect="leaves">🍂 Листопад</div>
           <div class="effect-chip" data-effect="bokeh">✨ Боке огни</div>
           <div class="effect-chip" data-effect="blizzard">🌨️ Метель</div>
@@ -721,33 +722,62 @@
     });
 
     const LEAF_COLORS = [
-      "#d9480f", // глубокий оранжевый
+      "#d9480f", // глубокий оранжевый клен
       "#f08c00", // теплый янтарь
-      "#e8590c", // пламенный клен
+      "#e8590c", // пламенный алый клен
       "#c92a2a", // багряный рубин
       "#ffd43b", // золотой лист
       "#862e9c", // винный бордовый
-      "#e67700"  // охра
+      "#e67700", // охра
+      "#b02a37"  // карминный клен
+    ];
+
+    const CRACKER_COLORS = [
+      "#ffd700", // Чистое золото
+      "#ff2a85", // Праздничная фуксия
+      "#00e5ff", // Неоновый лазурный
+      "#00e676", // Изумрудный блеск
+      "#ff3d00", // Огненно-красный
+      "#f1f5f9", // Платиновое серебро
+      "#b388ff", // Новогодний аметист
+      "#ff9100"  // Мандариновый оранжевый
     ];
 
     function createParticle(w, h) {
-      // 3 уровня глубины для листьев/боке/метели, для снега - 4 уровня
+      // Уровни глубины для реалистичной многоплановости
       let layer = Math.random() < 0.25 ? 2 : (Math.random() < 0.55 ? 0 : 1);
       const isBokeh = effectType === "bokeh";
       const isBlizzard = effectType === "blizzard";
       const isLeaves = effectType === "leaves";
+      const isCrackers = effectType === "crackers";
 
       let r = 2;
       let alpha = 0.7;
       let vy = 1.5;
       let vx = 0;
+      let crackerType = 0; // 0=прямоугольная фольга, 1=серпантин, 2=искра/звезда, 3=конфетти-диск
+      let rectW = 8;
+      let rectH = 15;
+      let serpentineLen = 32;
 
-      if (isLeaves) {
-        // Осенний лист: размер зависит от слоя
-        r = layer === 2 ? (11 + Math.random() * 9) : (layer === 0 ? (5 + Math.random() * 4) : (7 + Math.random() * 6));
+      if (isCrackers) {
+        // Новогодние хлопушки: россыпь металлической фольги, лент серпантина и ярких искр
+        const cRand = Math.random();
+        crackerType = cRand < 0.50 ? 0 : (cRand < 0.74 ? 1 : (cRand < 0.88 ? 2 : 3));
+        r = layer === 2 ? (6.5 + Math.random() * 5.5) : (layer === 0 ? (2.8 + Math.random() * 2.8) : (4.5 + Math.random() * 4.0));
+        rectW = r * 1.5;
+        rectH = r * 2.7;
+        serpentineLen = (layer === 2 ? 38 : (layer === 0 ? 18 : 28)) + Math.random() * 12;
+
+        vy = (1.4 + Math.random() * 1.8) * (layer === 2 ? 1.3 : (layer === 0 ? 0.75 : 1.0));
+        vx = (Math.random() - 0.5) * 1.6;
+        alpha = layer === 0 ? (0.65 + Math.random() * 0.3) : (0.88 + Math.random() * 0.12);
+      } else if (isLeaves) {
+        // Осенний лист: реалистичные размеры в зависимости от глубины
+        r = layer === 2 ? (13 + Math.random() * 10) : (layer === 0 ? (5.5 + Math.random() * 4.5) : (8.5 + Math.random() * 7));
         vy = (1.1 + Math.random() * 1.4) * (layer === 2 ? 1.25 : (layer === 0 ? 0.8 : 1.0));
         vx = (Math.random() - 0.5) * 1.1;
-        alpha = layer === 0 ? (0.65 + Math.random() * 0.25) : (0.85 + Math.random() * 0.15);
+        alpha = layer === 0 ? (0.65 + Math.random() * 0.25) : (0.88 + Math.random() * 0.12);
       } else if (isBokeh) {
         // Оптическое боке: размытые круги объектива
         r = layer === 2 ? (14 + Math.random() * 22) : (layer === 0 ? (5 + Math.random() * 8) : (8 + Math.random() * 14));
@@ -797,26 +827,32 @@
         x: Math.random() * w,
         y: Math.random() * h,
         r,
+        w: rectW,
+        h: rectH,
+        len: serpentineLen,
         vy,
         vx,
         alpha,
         layer,
         phase: Math.random() * Math.PI * 2,
         hue: [38, 48, 195, 340][Math.floor(Math.random() * 4)],
-        color: LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
-        leafType: Math.random() < 0.5 ? 0 : 1, // 0 = кленовый/остроконечный, 1 = березовый/овальный
+        color: isCrackers
+          ? CRACKER_COLORS[Math.floor(Math.random() * CRACKER_COLORS.length)]
+          : LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
+        crackerType,
+        leafType: Math.random() < 0.65 ? 0 : 1, // 0 = кленовый резной лист (65%), 1 = березовый резной лист (35%)
         rot: Math.random() * Math.PI * 2,
-        rotSpeed: (Math.random() - 0.5) * 0.04,
+        rotSpeed: isCrackers ? ((Math.random() - 0.5) * 0.08) : ((Math.random() - 0.5) * 0.04),
         flipPhase: Math.random() * Math.PI * 2,
-        flipSpeed: 0.025 + Math.random() * 0.035,
+        flipSpeed: isCrackers ? (0.05 + Math.random() * 0.08) : (0.025 + Math.random() * 0.035),
         pulsePhase: Math.random() * Math.PI * 2,
         pulseSpeed: 0.02 + Math.random() * 0.03,
         // Целочисленные циклы для 100% бесшовного 5-секундного 4K цикла
         loopCyclesY: isBlizzard ? (2 + Math.floor(Math.random() * 2)) : (isBokeh ? -(1 + Math.floor(Math.random() * 2)) : (1 + Math.floor(Math.random() * 2))),
         loopCyclesX: isBlizzard ? -(2 + Math.floor(Math.random() * 2)) : 0,
-        swayCycles: 1 + Math.floor(Math.random() * 3),
+        swayCycles: isCrackers ? (2 + Math.floor(Math.random() * 3)) : (1 + Math.floor(Math.random() * 3)),
         loopRotCycles: 1 + Math.floor(Math.random() * 2),
-        loopFlipCycles: 2 + Math.floor(Math.random() * 3),
+        loopFlipCycles: isCrackers ? (3 + Math.floor(Math.random() * 4)) : (2 + Math.floor(Math.random() * 3)),
         pulseCycles: 1 + Math.floor(Math.random() * 2)
       };
     }
@@ -860,32 +896,178 @@
       }
     }
 
-    // Отрисовка силуэта осеннего листа с жилкой и 3D переворотом
-    function drawLeaf(targetCtx, size, color, flipX, leafType) {
+    // Отрисовка фотореалистичного 5-лопастного резного кленового листа с пальчатыми жилками
+    function drawMapleLeaf(targetCtx, size, color, flipX) {
       targetCtx.save();
       targetCtx.scale(flipX, 1);
       targetCtx.fillStyle = color;
       targetCtx.beginPath();
-      if (leafType === 0) {
-        // Остроконечный кленовый лист
-        targetCtx.moveTo(0, -size);
-        targetCtx.bezierCurveTo(size * 0.85, -size * 0.45, size * 0.95, size * 0.35, 0, size);
-        targetCtx.bezierCurveTo(-size * 0.95, size * 0.35, -size * 0.85, -size * 0.45, 0, -size);
-      } else {
-        // Овальный березовый лист с черенком
-        targetCtx.moveTo(0, -size * 0.9);
-        targetCtx.bezierCurveTo(size * 0.75, -size * 0.6, size * 0.8, size * 0.25, 0, size);
-        targetCtx.bezierCurveTo(-size * 0.8, size * 0.25, -size * 0.75, -size * 0.6, 0, -size * 0.9);
-      }
+
+      // Узел расхождения долей у основания (0, size * 0.2)
+      targetCtx.moveTo(0, size * 0.2);
+
+      // Правая сторона кленового листа (симметрично левой):
+      // 1. Нижняя базальная доля
+      targetCtx.lineTo(size * 0.28, size * 0.42);
+      targetCtx.lineTo(size * 0.54, size * 0.38); // кончик нижней доли
+      targetCtx.lineTo(size * 0.38, size * 0.16); // вырез
+      
+      // 2. Средняя крупная боковая доля с 3 зубцами
+      targetCtx.lineTo(size * 0.65, size * 0.1);  // нижний зубец
+      targetCtx.lineTo(size * 0.58, -size * 0.05);
+      targetCtx.lineTo(size * 0.9, -size * 0.2);  // главный кончик боковой доли
+      targetCtx.lineTo(size * 0.65, -size * 0.34); // верхний зубец
+      targetCtx.lineTo(size * 0.44, -size * 0.4); // глубокий вырез к центральной доле
+      
+      // 3. Центральная верхняя доля с 3 зубцами
+      targetCtx.lineTo(size * 0.46, -size * 0.64); // правый зубец
+      targetCtx.lineTo(size * 0.24, -size * 0.7);
+      targetCtx.lineTo(0, -size * 1.05);           // верхняя главная вершина клена
+
+      // Левая сторона кленового листа
+      targetCtx.lineTo(-size * 0.24, -size * 0.7);
+      targetCtx.lineTo(-size * 0.46, -size * 0.64);
+      targetCtx.lineTo(-size * 0.44, -size * 0.4);
+      targetCtx.lineTo(-size * 0.65, -size * 0.34);
+      targetCtx.lineTo(-size * 0.9, -size * 0.2);
+      targetCtx.lineTo(-size * 0.58, -size * 0.05);
+      targetCtx.lineTo(-size * 0.65, size * 0.1);
+      targetCtx.lineTo(-size * 0.38, size * 0.16);
+      targetCtx.lineTo(-size * 0.54, size * 0.38);
+      targetCtx.lineTo(-size * 0.28, size * 0.42);
+      targetCtx.closePath();
       targetCtx.fill();
 
-      // Тонкая центральная жилка листа
-      targetCtx.strokeStyle = "rgba(0, 0, 0, 0.25)";
-      targetCtx.lineWidth = Math.max(0.8, size * 0.07);
+      // Черенок листа
+      targetCtx.strokeStyle = "rgba(60, 24, 8, 0.6)";
+      targetCtx.lineWidth = Math.max(1, size * 0.07);
+      targetCtx.lineCap = "round";
       targetCtx.beginPath();
-      targetCtx.moveTo(0, -size * 0.85);
-      targetCtx.lineTo(0, size * 0.95);
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(0, size * 0.9);
       targetCtx.stroke();
+
+      // Пальчатые жилки листа
+      targetCtx.strokeStyle = "rgba(0, 0, 0, 0.28)";
+      targetCtx.lineWidth = Math.max(0.7, size * 0.045);
+      targetCtx.beginPath();
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(0, -size * 0.95);
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(size * 0.82, -size * 0.18);
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(-size * 0.82, -size * 0.18);
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(size * 0.48, size * 0.32);
+      targetCtx.moveTo(0, size * 0.2);
+      targetCtx.lineTo(-size * 0.48, size * 0.32);
+      targetCtx.stroke();
+
+      targetCtx.restore();
+    }
+
+    // Отрисовка резного березового листа
+    function drawBirchLeaf(targetCtx, size, color, flipX) {
+      targetCtx.save();
+      targetCtx.scale(flipX, 1);
+      targetCtx.fillStyle = color;
+      targetCtx.beginPath();
+      targetCtx.moveTo(0, -size * 0.95);
+      targetCtx.bezierCurveTo(size * 0.78, -size * 0.55, size * 0.85, size * 0.25, 0, size * 0.85);
+      targetCtx.bezierCurveTo(-size * 0.85, size * 0.25, -size * 0.78, -size * 0.55, 0, -size * 0.95);
+      targetCtx.fill();
+
+      targetCtx.strokeStyle = "rgba(0, 0, 0, 0.28)";
+      targetCtx.lineWidth = Math.max(0.8, size * 0.06);
+      targetCtx.lineCap = "round";
+      targetCtx.beginPath();
+      targetCtx.moveTo(0, -size * 0.88);
+      targetCtx.lineTo(0, size * 1.05);
+      for (let i = -0.5; i <= 0.4; i += 0.3) {
+        targetCtx.moveTo(0, size * i);
+        targetCtx.lineTo(size * 0.45 * (1 - Math.abs(i)), size * (i - 0.15));
+        targetCtx.moveTo(0, size * i);
+        targetCtx.lineTo(-size * 0.45 * (1 - Math.abs(i)), size * (i - 0.15));
+      }
+      targetCtx.stroke();
+      targetCtx.restore();
+    }
+
+    // Отрисовка новогодних хлопушек: фольга, серпантин, искры, диски
+    function drawCrackerParticle(targetCtx, p, x, y, scaleRatio, flipX, rot, pulse) {
+      targetCtx.save();
+      targetCtx.translate(x, y);
+      targetCtx.rotate(rot);
+
+      const curAlpha = p.alpha;
+      targetCtx.globalAlpha = curAlpha;
+
+      if (p.crackerType === 0) {
+        // Фольгированное прямоугольное конфетти с 3D кувырком и зеркальным бликом
+        targetCtx.scale(flipX, 1);
+        const w = (p.w || 9) * scaleRatio;
+        const h = (p.h || 16) * scaleRatio;
+
+        const grad = targetCtx.createLinearGradient(-w / 2, -h / 2, w / 2, h / 2);
+        grad.addColorStop(0, p.color);
+        grad.addColorStop(0.48, "#ffffff");
+        grad.addColorStop(1, p.color);
+        targetCtx.fillStyle = grad;
+        targetCtx.fillRect(-w / 2, -h / 2, w, h);
+
+        if (Math.abs(flipX) < 0.28) {
+          targetCtx.fillStyle = "rgba(255, 255, 255, 0.9)";
+          targetCtx.fillRect(-w / 2, -h / 2, w, h);
+        }
+      } else if (p.crackerType === 1) {
+        // Серпантин: спиральная волнистая праздничная лента
+        targetCtx.scale(flipX, 1);
+        const len = (p.len || 32) * scaleRatio;
+        const ribbonW = Math.max(1.5, 3.5 * scaleRatio);
+        targetCtx.strokeStyle = p.color;
+        targetCtx.lineWidth = ribbonW;
+        targetCtx.lineCap = "round";
+        targetCtx.beginPath();
+        targetCtx.moveTo(0, -len / 2);
+        const waveCount = 3;
+        const step = len / waveCount;
+        for (let i = 0; i < waveCount; i++) {
+          const cy = -len / 2 + step * (i + 0.5);
+          const ey = -len / 2 + step * (i + 1);
+          const dir = i % 2 === 0 ? 1 : -1;
+          targetCtx.quadraticCurveTo(dir * 12 * scaleRatio, cy, 0, ey);
+        }
+        targetCtx.stroke();
+      } else if (p.crackerType === 2) {
+        // Золотая искра/звездочка от вспышки хлопушки
+        const starR = (p.r || 6) * scaleRatio * pulse;
+        targetCtx.fillStyle = "#ffffff";
+        targetCtx.shadowColor = p.color;
+        targetCtx.shadowBlur = 10 * scaleRatio;
+        targetCtx.beginPath();
+        for (let i = 0; i < 8; i++) {
+          const radius = i % 2 === 0 ? starR * 1.5 : starR * 0.35;
+          const angle = (i * Math.PI) / 4;
+          const sx = Math.cos(angle) * radius;
+          const sy = Math.sin(angle) * radius;
+          if (i === 0) targetCtx.moveTo(sx, sy);
+          else targetCtx.lineTo(sx, sy);
+        }
+        targetCtx.closePath();
+        targetCtx.fill();
+      } else {
+        // Круглое блестящее конфетти-диск
+        targetCtx.scale(flipX, 1);
+        const discR = (p.r || 6) * scaleRatio;
+        const g = targetCtx.createRadialGradient(-discR * 0.3, -discR * 0.3, 0, 0, 0, discR);
+        g.addColorStop(0, "#ffffff");
+        g.addColorStop(0.4, p.color);
+        g.addColorStop(1, p.color);
+        targetCtx.fillStyle = g;
+        targetCtx.beginPath();
+        targetCtx.arc(0, 0, discR, 0, Math.PI * 2);
+        targetCtx.fill();
+      }
       targetCtx.restore();
     }
 
@@ -893,11 +1075,17 @@
       targetCtx.save();
       const r = p.r * scaleRatio;
 
-      if (effectType === "leaves") {
+      if (effectType === "crackers") {
+        drawCrackerParticle(targetCtx, p, x, y, scaleRatio, flipX, rot, pulse);
+      } else if (effectType === "leaves") {
         targetCtx.translate(x, y);
         targetCtx.rotate(rot);
         targetCtx.globalAlpha = p.alpha;
-        drawLeaf(targetCtx, r, p.color, flipX, p.leafType);
+        if (p.leafType === 0) {
+          drawMapleLeaf(targetCtx, r, p.color, flipX);
+        } else {
+          drawBirchLeaf(targetCtx, r, p.color, flipX);
+        }
       } else if (effectType === "bokeh") {
         const curAlpha = p.alpha * pulse;
         // Оптическое боке: яркий внешний ободок линзы диафрагмы, полупрозрачный центр
@@ -976,7 +1164,7 @@
         p.rot += p.rotSpeed * speedMultiplier;
         p.pulsePhase += p.pulseSpeed * speedMultiplier;
 
-        const sway = Math.sin(p.phase) * (effectType === "leaves" ? 1.4 : (effectType === "blizzard" ? 0.3 : (p.layer === 3 ? 1.3 : (p.layer === 2 ? 1.0 : 0.6))));
+        const sway = Math.sin(p.phase) * (effectType === "leaves" ? 1.4 : (effectType === "crackers" ? 1.6 : (effectType === "blizzard" ? 0.3 : (p.layer === 3 ? 1.3 : (p.layer === 2 ? 1.0 : 0.6)))));
         p.y += p.vy * speedMultiplier * dtScale;
         p.x += (p.vx + sway) * speedMultiplier * dtScale;
 
@@ -1008,7 +1196,7 @@
         const cyclesX = p.loopCyclesX * speedCycles;
         const swayFreq = p.swayCycles * speedCycles;
 
-        const layerSwayAmp = (effectType === "blizzard" ? 36 : (effectType === "leaves" ? 45 : (p.layer === 3 ? 42 : (p.layer === 2 ? 32 : 22)))) * scaleRatio;
+        const layerSwayAmp = (effectType === "blizzard" ? 36 : (effectType === "leaves" ? 45 : (effectType === "crackers" ? 48 : (p.layer === 3 ? 42 : (p.layer === 2 ? 32 : 22))))) * scaleRatio;
         const swayOffset = Math.sin(p.phase + t * Math.PI * 2 * swayFreq) * layerSwayAmp;
         const rawX = baseX + cyclesX * spanW * t + swayOffset;
         const rawY = baseY + cyclesY * spanH * t;
