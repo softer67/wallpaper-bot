@@ -169,7 +169,19 @@ async def process_grant(callback: types.CallbackQuery):
 
     active_requests.discard(web_user_id)
 
-    grant_display = "♾️ Безлимит" if amount == "99999" else f"**{amount}**"
+    grant_display = "♾️ Безлимит" if amount == "99999" else f"{amount}"
+    bonus_val = "unlimited" if amount == "99999" else amount
+    bonus_url = f"https://fourk-wallpaper-site.onrender.com/?bonus={bonus_val}"
+
+    # Кнопка для мгновенной активации генераций на сайте
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[[
+            InlineKeyboardButton(
+                text=f"🎁 Активировать {grant_display} на сайте",
+                url=bonus_url,
+            )
+        ]]
+    )
 
     await callback.message.edit_text(
         f"✅ Пользователю `{web_user_id}` одобрено {grant_display} генераций.",
@@ -179,7 +191,11 @@ async def process_grant(callback: types.CallbackQuery):
     try:
         await bot.send_message(
             chat_id=tg_user_id,
-            text=f"🎉 Вам начислено {grant_display} генераций для ID `{web_user_id}`!",
+            text=(
+                f"🎉 **Вам начислено {grant_display} генераций для ID `{web_user_id}`!**\n\n"
+                f"👇 Нажмите кнопку ниже, чтобы генерации активировались на сайте:"
+            ),
+            reply_markup=kb,
             parse_mode="Markdown",
         )
     except Exception as e:
@@ -227,7 +243,11 @@ async def cmd_give(message: types.Message):
 
     target = args[1]
     amount = args[2]
-    await message.answer(f"✅ Начислено {amount} генераций для `{target}`!", parse_mode="Markdown")
+    bonus_url = f"https://fourk-wallpaper-site.onrender.com/?bonus={amount}"
+    await message.answer(
+        f"✅ Начислено {amount} генераций для `{target}`!\nСсылка для активации:\n{bonus_url}",
+        parse_mode="Markdown"
+    )
 
 # --- ВЕБ-СЕРВЕР ДЛЯ RENDER (чтобы не было ошибки портов) ---
 async def handle(request):
@@ -241,7 +261,9 @@ async def web_server():
     site = web.TCPSite(runner, "0.0.0.0", 8080)
     await site.start()
 
+# Запуск бота
 async def main():
+    # Запускаем веб-сервер и бота одновременно
     await web_server()
     print("🚀 Бот и веб-сервер успешно запущены!")
     await dp.start_polling(bot)
