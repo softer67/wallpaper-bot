@@ -121,15 +121,175 @@
       color: var(--gold);
     }
 
-    .auth-bar {
+    /* Новогодняя гирлянда со светящимися огоньками */
+    .ny-garland {
       display: flex;
-      justify-content: space-between;
+      justify-content: space-around;
       align-items: center;
-      background: var(--card);
-      border: 1px solid var(--border);
-      padding: 10px 16px;
+      width: 100%;
+      height: 14px;
+      margin-bottom: 6px;
+      position: relative;
+    }
+    .ny-garland::before {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 8px;
+      right: 8px;
+      height: 1.5px;
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 99px;
+      z-index: 1;
+    }
+    .ny-bulb {
+      width: 8px;
+      height: 11px;
+      border-radius: 50% 50% 45% 45%;
+      position: relative;
+      z-index: 2;
+      animation: bulbGlow 1.8s infinite alternate ease-in-out;
+    }
+    .ny-bulb.red { background: #ef4444; box-shadow: 0 0 8px #ef4444, 0 0 16px #ef4444; animation-delay: 0s; }
+    .ny-bulb.gold { background: #fbbf24; box-shadow: 0 0 8px #fbbf24, 0 0 16px #fbbf24; animation-delay: 0.3s; }
+    .ny-bulb.blue { background: #38bdf8; box-shadow: 0 0 8px #38bdf8, 0 0 16px #38bdf8; animation-delay: 0.6s; }
+    .ny-bulb.green { background: #22c55e; box-shadow: 0 0 8px #22c55e, 0 0 16px #22c55e; animation-delay: 0.9s; }
+    .ny-bulb.purple { background: #c084fc; box-shadow: 0 0 8px #c084fc, 0 0 16px #c084fc; animation-delay: 1.2s; }
+
+    @keyframes bulbGlow {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      100% { opacity: 1; transform: scale(1.15); }
+    }
+
+    /* Новогодняя карточка авторизации и приветствия */
+    .auth-card {
+      background: linear-gradient(145deg, rgba(16, 26, 48, 0.92) 0%, rgba(13, 21, 38, 0.96) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.28);
+      border-radius: 20px;
+      padding: 16px 14px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
+    }
+
+    .auth-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(251, 191, 36, 0.15);
+      border: 1px solid rgba(251, 191, 36, 0.35);
+      color: var(--gold);
+      padding: 3px 10px;
+      border-radius: 99px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+
+    .auth-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      max-width: 380px;
+      line-height: 1.38;
+    }
+
+    .tg-login-wrapper {
+      margin-top: 4px;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(56, 189, 248, 0.35);
       border-radius: 16px;
-      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      width: 100%;
+      max-width: 310px;
+    }
+
+    /* Новогодний блок авторизованного пользователя */
+    .user-welcome-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .welcome-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 1.08rem;
+      font-weight: 700;
+      color: #fff;
+      flex-wrap: wrap;
+    }
+
+    .user-name-highlight {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .user-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 2px;
+    }
+
+    .user-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(34, 197, 94, 0.15);
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      color: #4ade80;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+
+    .user-pill.status {
+      background: rgba(251, 191, 36, 0.15);
+      border-color: rgba(251, 191, 36, 0.35);
+      color: var(--gold);
+    }
+
+    .logout-btn-new {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 0.74rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .logout-btn-new:hover {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fff;
     }
 
     .preview-card {
@@ -309,11 +469,98 @@
       cursor: not-allowed;
     }
 
-    .btn-bot {
+    /* Новогодняя праздничная кнопка запроса генераций у бота */
+    .btn-bot-festive {
       width: 100%;
-      background: rgba(34, 197, 94, 0.14);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-      color: #4ade80;
+      background: linear-gradient(135deg, #065f46 0%, #059669 45%, #10b981 100%);
+      border: 1px solid rgba(52, 211, 153, 0.45);
+      border-radius: 16px;
+      padding: 12px 14px;
+      color: #ffffff;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-bot-festive::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -100%;
+      width: 50%;
+      height: 200%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+      transform: rotate(25deg);
+      animation: botShimmer 3.5s infinite;
+      pointer-events: none;
+    }
+
+    @keyframes botShimmer {
+      0% { left: -100%; }
+      30%, 100% { left: 200%; }
+    }
+
+    .btn-bot-festive:hover, .btn-bot-festive:active {
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 6px 25px rgba(16, 185, 129, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      border-color: rgba(110, 231, 183, 0.8);
+      color: #fff;
+    }
+
+    .bot-btn-icon {
+      font-size: 1.8rem;
+      flex-shrink: 0;
+      animation: giftBounce 2s infinite ease-in-out;
+    }
+
+    @keyframes giftBounce {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-3px) rotate(-6deg); }
+    }
+
+    .bot-btn-text {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      flex-grow: 1;
+      gap: 2px;
+    }
+
+    .bot-btn-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .bot-btn-subtitle {
+      font-size: 0.74rem;
+      color: rgba(255, 255, 255, 0.88);
+      font-weight: 400;
+    }
+
+    .bot-btn-badge {
+      background: rgba(251, 191, 36, 0.25);
+      border: 1px solid rgba(251, 191, 36, 0.55);
+      color: #fef08a;
+      padding: 4px 8px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      flex-shrink: 0;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .progress-wrap {
@@ -415,8 +662,8 @@
   <div class="container">
     <header>
       <div class="logo-wrap">
-        <h1>❄️ 4K Live Wallpaper Studio</h1>
-        <p>Новогодняя анимация и экспорт в Ultra HD</p>
+        <h1>🎄 4K Live Wallpaper Studio</h1>
+        <p>✨ Новогодняя атмосфера и экспорт в Ultra HD ❄️</p>
       </div>
       <button class="admin-btn" id="openAdminBtn" title="Панель администратора" aria-label="Панель администратора">🔑</button>
     </header>
@@ -430,18 +677,55 @@
       <div class="quota-badge" id="quotaDisplay">Осталось: 2 / 2</div>
     </div>
 
-    <!-- Блок авторизации через Telegram -->
-    <div class="auth-bar" id="authBar">
-      <span id="authStatusText" style="color: var(--muted); font-size: 0.82rem;">⚠️ Вы не вошли в аккаунт</span>
-      <div id="telegram-login-container">
-        <script async src="https://telegram.org/js/telegram-widget.js?22"
-                data-telegram-login="helper_4k_wallpapers_bot"
-                data-size="large"
-                data-request-access="write"
-                data-onauth="onTelegramAuth(user)">
-        </script>
+    <!-- Новогодняя карточка авторизации и приветствия -->
+    <div class="auth-card" id="authCard">
+      <!-- Гирлянда огоньков -->
+      <div class="ny-garland">
+        <span class="ny-bulb red"></span>
+        <span class="ny-bulb gold"></span>
+        <span class="ny-bulb blue"></span>
+        <span class="ny-bulb green"></span>
+        <span class="ny-bulb purple"></span>
+        <span class="ny-bulb gold"></span>
+        <span class="ny-bulb red"></span>
+        <span class="ny-bulb blue"></span>
+        <span class="ny-bulb green"></span>
       </div>
-      <button class="btn btn-secondary" id="tgLogoutBtn" style="display: none; padding: 6px 12px; font-size: 0.78rem;" onclick="logoutTelegram()">Выйти</button>
+
+      <!-- Состояние 1: Не авторизован (Вход через Telegram) -->
+      <div class="auth-logged-out" id="authLoggedOut" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
+        <div class="auth-badge">🎄 Новогодний сезон 2025–2026</div>
+        <div class="auth-title">❄️ Вход в Студию Обоев</div>
+        <div class="auth-subtitle">Войдите через Telegram, чтобы получить праздничные 4K генерации и сохранять живые обои</div>
+        <div class="tg-login-wrapper" id="telegram-login-container">
+          <script async src="https://telegram.org/js/telegram-widget.js?22"
+                  data-telegram-login="helper_4k_wallpapers_bot"
+                  data-size="large"
+                  data-request-access="write"
+                  data-onauth="onTelegramAuth(user)">
+          </script>
+        </div>
+        <div style="font-size: 0.73rem; color: var(--muted); margin-top: 1px;">
+          ✨ Быстрый вход в 1 клик через официальный виджет Telegram
+        </div>
+      </div>
+
+      <!-- Состояние 2: Авторизован (Праздничное приветствие) -->
+      <div class="user-welcome-card" id="authLoggedIn" style="display: none;">
+        <div class="welcome-header">
+          <span>🎅 С Новым Годом,</span>
+          <span class="user-name-highlight" id="userNameWelcome">Гость</span>!
+          <span>🎁</span>
+        </div>
+        <div class="auth-subtitle">
+          Вам открыт праздничный доступ к новогодней коллекции эффектов и 4K рендеру!
+        </div>
+        <div class="user-meta-row">
+          <span class="user-pill" id="userHandlePill">👤 @username</span>
+          <span class="user-pill status">⭐ Новогодний статус активен</span>
+          <button class="logout-btn-new" id="tgLogoutBtn" onclick="logoutTelegram()">Выйти</button>
+        </div>
+      </div>
     </div>
 
     <div class="preview-card">
@@ -507,8 +791,14 @@
         <button class="btn btn-primary" id="renderBtn">🎬 Скачать 4K</button>
       </div>
 
-      <a class="btn btn-bot" id="botLinkBtn" href="https://t.me/helper_4k_wallpapers_bot" target="_blank" rel="noopener">
-        🤖 Запросить генерации в @helper_4k_wallpapers_bot
+      <!-- Новогодняя интерактивная кнопка запроса генераций -->
+      <a class="btn-bot-festive" id="botLinkBtn" href="https://t.me/helper_4k_wallpapers_bot" target="_blank" rel="noopener">
+        <div class="bot-btn-icon">🎁</div>
+        <div class="bot-btn-text">
+          <div class="bot-btn-title">Запросить генерации у бота ⚡</div>
+          <div class="bot-btn-subtitle">Бот @helper_4k_wallpapers_bot • Выдача бонусов</div>
+        </div>
+        <div class="bot-btn-badge">+Генерации 🎄</div>
       </a>
     </div>
   </div>
@@ -682,21 +972,22 @@
       setTelegramLoggedInUI(user);
       updateQuotaUI();
       checkUrlBonus();
-      showToast(`Привет, ${user.first_name}!`);
+      showToast(`🎄 С Новым Годом, ${user.first_name || 'друг'}! Приятного творчества! 🎁`);
     }
     window.onTelegramAuth = onTelegramAuth;
 
     function setTelegramLoggedInUI(user) {
-      const handle = user.username ? ` (@${user.username})` : "";
-      const statusEl = document.getElementById("authStatusText");
-      if (statusEl) {
-        statusEl.innerHTML = `👤 <b>${user.first_name}</b>${handle}`;
-        statusEl.style.color = "var(--success, #22c55e)";
-      }
-      const tgContainer = document.getElementById("telegram-login-container");
-      if (tgContainer) tgContainer.style.display = "none";
-      const logoutBtn = document.getElementById("tgLogoutBtn");
-      if (logoutBtn) logoutBtn.style.display = "inline-block";
+      const authLoggedOut = document.getElementById("authLoggedOut");
+      const authLoggedIn = document.getElementById("authLoggedIn");
+      if (authLoggedOut) authLoggedOut.style.display = "none";
+      if (authLoggedIn) authLoggedIn.style.display = "flex";
+
+      const nameEl = document.getElementById("userNameWelcome");
+      if (nameEl) nameEl.textContent = user.first_name || (user.username ? ("@" + user.username) : "Друг");
+
+      const handlePill = document.getElementById("userHandlePill");
+      if (handlePill) handlePill.textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
+
       const userIdDisplay = document.getElementById("userIdDisplay");
       if (userIdDisplay) {
         userIdDisplay.textContent = user.username ? `@${user.username}` : user.id;
