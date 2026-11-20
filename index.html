@@ -816,27 +816,57 @@
       </div>
 
       <div id="adminPanelSection" style="display: none; flex-direction: column; gap: 12px;">
-        <p style="font-size: 0.82rem; color: var(--muted);">
-          Ваш текущий ID: <strong id="adminCurrentId" style="color: #fff;"></strong>
-        </p>
-        <div class="control-group">
-          <div class="control-header"><span>ID пользователя (или почта)</span></div>
-          <input type="text" id="targetUserIdInput" placeholder="Например: user_48291 или gmail" />
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 0.82rem; color: var(--muted);">
+            Ваш ID: <strong id="adminCurrentId" style="color: #fff;"></strong>
+          </p>
+          <span style="font-size: 0.72rem; color: var(--gold); background: rgba(251,191,36,0.15); border: 1px solid rgba(251,191,36,0.3); padding: 2px 8px; border-radius: 6px;">Администратор</span>
         </div>
+
         <div class="control-group">
-          <div class="control-header"><span>Выдать генераций (1 – 999)</span></div>
-          <input type="number" id="grantCountInput" min="1" max="999" value="10" />
+          <div class="control-header"><span>Юзернейм или ID пользователя</span></div>
+          <input type="text" id="targetUserIdInput" placeholder="@username или user_12345" />
         </div>
+
+        <div class="control-group">
+          <div class="control-header"><span>Количество генераций</span></div>
+          <input type="number" id="grantCountInput" min="1" max="999" value="50" />
+        </div>
+
         <div class="preset-grid">
-          <button class="preset-btn" data-val="5">+5</button>
+          <button class="preset-btn" data-val="10">+10</button>
           <button class="preset-btn" data-val="25">+25</button>
-          <button class="preset-btn" data-val="100">+100</button>
+          <button class="preset-btn" data-val="50">+50</button>
           <button class="preset-btn" data-val="unlimited">∞ Безлимит</button>
         </div>
-        <div class="btn-row">
-          <button class="btn btn-secondary" id="closeAdminPanel">Закрыть</button>
-          <button class="btn btn-primary" id="applyGrantBtn">Применить</button>
+
+        <!-- Кнопки действий администратора -->
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 4px;">
+          <!-- Действие 1: Начислить в текущем браузере (для себя / теста) -->
+          <button class="btn btn-primary" id="applyGrantBtn" style="width: 100%;">
+            ⚡ Начислить в этом браузере
+          </button>
+
+          <!-- Действие 2: Создать подарочную ссылку для любого пользователя -->
+          <button class="btn btn-secondary" id="createGiftLinkBtn" style="width: 100%; border-color: rgba(251,191,36,0.5); color: #fef08a;">
+            🎁 Создать подарочную ссылку для пользователя
+          </button>
         </div>
+
+        <!-- Блок вывода сгенерированной ссылки -->
+        <div id="giftLinkResultWrap" style="display: none; background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(251,191,36,0.3); border-radius: 12px; padding: 10px; flex-direction: column; gap: 6px;">
+          <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--gold); font-weight: 600;">
+            <span>Подарочная ссылка готова:</span>
+            <span id="giftLinkTargetLabel"></span>
+          </div>
+          <input type="text" id="giftLinkOutput" readonly style="font-size: 0.76rem; padding: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); color: #fff; border-radius: 8px;" />
+          <div class="btn-row" style="margin-top: 2px;">
+            <button class="btn btn-primary" id="copyGiftLinkBtn" style="padding: 7px 10px; font-size: 0.78rem;">📋 Скопировать</button>
+            <a class="btn btn-secondary" id="shareGiftTgBtn" target="_blank" style="padding: 7px 10px; font-size: 0.78rem; text-decoration: none; text-align: center;">✈️ В Telegram</a>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" id="closeAdminPanel" style="margin-top: 4px;">Закрыть панель</button>
       </div>
     </div>
   </div>
@@ -943,17 +973,17 @@
     
     function checkUrlBonus() {
       const urlParams = new URLSearchParams(window.location.search);
-      const bonusParam = urlParams.get('bonus') || urlParams.get('add_bonus');
+      const bonusParam = urlParams.get('bonus') || urlParams.get('gift') || urlParams.get('promo') || urlParams.get('add_bonus');
       if (bonusParam) {
-        if (bonusParam === 'unlimited' || bonusParam === '99999') {
+        if (bonusParam === 'unlimited' || bonusParam === '99999' || bonusParam === 'inf') {
           safeStorage.setItem("lw_unlimited_" + userId, "true");
-          showToast("🎉 Активирован безлимитный доступ!");
+          showToast("🎉 Подарок активирован: Безлимитный доступ к 4K обоям!");
         } else {
           const amount = parseInt(bonusParam, 10);
           if (!isNaN(amount) && amount > 0) {
             const cur = parseInt(safeStorage.getItem("lw_bonus_" + userId) || "0", 10);
             safeStorage.setItem("lw_bonus_" + userId, String(cur + amount));
-            showToast(`🎉 Начислено +${amount} генераций для ${userId}!`);
+            showToast(`🎁 Новогодний подарок! Вам начислено +${amount} генераций!`);
           }
         }
         updateQuotaUI();
@@ -1895,25 +1925,61 @@
     document.querySelectorAll(".preset-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         const val = btn.dataset.val;
-        const targetId = document.getElementById("targetUserIdInput").value.trim() || userId;
-        if (val === "unlimited") {
-          safeStorage.setItem("lw_unlimited_" + targetId, "true");
-          updateQuotaUI();
-          showToast(`Безлимит активирован для ${targetId}`);
-        } else {
-          document.getElementById("grantCountInput").value = val;
-        }
+        document.getElementById("grantCountInput").value = val;
       });
     });
 
+    // Начисление в текущем браузере (для себя / теста)
     document.getElementById("applyGrantBtn").addEventListener("click", () => {
       const targetId = document.getElementById("targetUserIdInput").value.trim() || userId;
-      const count = Math.min(999, Math.max(1, parseInt(document.getElementById("grantCountInput").value, 10) || 1));
-      const currentBonus = parseInt(safeStorage.getItem("lw_bonus_" + targetId) || "0", 10);
-      safeStorage.setItem("lw_unlimited_" + targetId, "false");
-      safeStorage.setItem("lw_bonus_" + targetId, String(currentBonus + count));
-      updateQuotaUI();
-      showToast(`Выдано +${count} генераций для ${targetId}`);
+      const countVal = document.getElementById("grantCountInput").value;
+      if (countVal === "unlimited") {
+        safeStorage.setItem("lw_unlimited_" + targetId, "true");
+        updateQuotaUI();
+        showToast(`🎉 Безлимит активирован для ${targetId}`);
+      } else {
+        const count = Math.min(999, Math.max(1, parseInt(countVal, 10) || 50));
+        const currentBonus = parseInt(safeStorage.getItem("lw_bonus_" + targetId) || "0", 10);
+        safeStorage.setItem("lw_unlimited_" + targetId, "false");
+        safeStorage.setItem("lw_bonus_" + targetId, String(currentBonus + count));
+        updateQuotaUI();
+        showToast(`⚡ Выдано +${count} генераций для ${targetId}`);
+      }
+    });
+
+    // Создание персональной подарочной ссылки для любого пользователя
+    document.getElementById("createGiftLinkBtn").addEventListener("click", () => {
+      const targetId = document.getElementById("targetUserIdInput").value.trim();
+      const countVal = document.getElementById("grantCountInput").value;
+      const isUnlimited = countVal === "unlimited";
+      const count = isUnlimited ? "unlimited" : Math.min(999, Math.max(1, parseInt(countVal, 10) || 50));
+
+      const baseUrl = window.location.origin + window.location.pathname;
+      const giftUrl = `${baseUrl}?gift=${count}${targetId ? `&to=${encodeURIComponent(targetId)}` : ""}`;
+
+      const wrap = document.getElementById("giftLinkResultWrap");
+      wrap.style.display = "flex";
+
+      const output = document.getElementById("giftLinkOutput");
+      output.value = giftUrl;
+
+      document.getElementById("giftLinkTargetLabel").textContent = targetId ? targetId : "для любого гостя";
+
+      const shareBtn = document.getElementById("shareGiftTgBtn");
+      const shareText = encodeURIComponent(`Привет! Держи новогодний подарок в Студии 4K Обоев: ${isUnlimited ? 'Безлимитный доступ' : `+${count} генераций`}!\n\nАктивируй по ссылке: ${giftUrl}`);
+      if (targetId.startsWith("@")) {
+        shareBtn.href = `https://t.me/${targetId.replace("@", "")}`;
+      } else {
+        shareBtn.href = `https://t.me/share/url?url=${encodeURIComponent(giftUrl)}&text=${shareText}`;
+      }
+
+      showToast("🎁 Подарочная ссылка сгенерирована!");
+    });
+
+    document.getElementById("copyGiftLinkBtn").addEventListener("click", () => {
+      const output = document.getElementById("giftLinkOutput");
+      navigator.clipboard?.writeText(output.value);
+      showToast("📋 Подарочная ссылка скопирована в буфер!");
     });
   </script>
 </body>
