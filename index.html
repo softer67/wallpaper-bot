@@ -208,7 +208,7 @@
     }
 
     .tg-login-wrapper {
-      margin-top: 4px;
+      margin-top: 2px;
       padding: 8px 12px;
       background: rgba(255, 255, 255, 0.04);
       border: 1px dashed rgba(56, 189, 248, 0.35);
@@ -219,6 +219,195 @@
       gap: 6px;
       width: 100%;
       max-width: 310px;
+    }
+
+    /* Выбор способа авторизации */
+    .auth-choice-grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      max-width: 320px;
+      margin-top: 4px;
+    }
+
+    .auth-method-card {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .auth-choice-divider {
+      display: flex;
+      align-items: center;
+      width: 85%;
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .auth-choice-divider::before,
+    .auth-choice-divider::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .auth-choice-divider span {
+      padding: 0 10px;
+    }
+
+    .btn-guest-login {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.16) 0%, rgba(99, 102, 241, 0.22) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      border-radius: 14px;
+      color: #e0f2fe;
+      padding: 10px 14px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.22s ease;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-guest-login:hover {
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.28) 0%, rgba(99, 102, 241, 0.35) 100%);
+      border-color: #38bdf8;
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-guest-login:active {
+      transform: translateY(0);
+    }
+
+    .btn-guest-sparkle {
+      font-size: 1.05rem;
+    }
+
+    .auth-hint-sub {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 1px;
+      text-align: center;
+    }
+
+    .tg-switch-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #38bdf8;
+      padding: 4px 10px;
+      border-radius: 10px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .tg-switch-btn:hover {
+      background: rgba(56, 189, 248, 0.3);
+      color: #fff;
+    }
+
+    /* Нижняя карточка авторизации через Telegram для гостей */
+    .bottom-tg-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(16, 26, 48, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      padding: 12px 16px;
+      margin-top: 6px;
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bottom-tg-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+
+    .bottom-tg-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    }
+
+    .bottom-tg-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bottom-tg-sub {
+      font-size: 0.73rem;
+      color: var(--muted);
+      line-height: 1.3;
+    }
+
+    .bottom-tg-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 0.2s;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+
+    .bottom-tg-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(34, 197, 94, 0.45);
+      filter: brightness(1.1);
+    }
+
+    @media (max-width: 480px) {
+      .bottom-tg-card {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+      .bottom-tg-left {
+        justify-content: center;
+        text-align: center;
+      }
+      .bottom-tg-btn {
+        justify-content: center;
+      }
     }
 
     /* Новогодний блок авторизованного пользователя */
@@ -692,21 +881,37 @@
         <span class="ny-bulb green"></span>
       </div>
 
-      <!-- Состояние 1: Не авторизован (Вход через Telegram) -->
+      <!-- Состояние 1: Не авторизован (Вход через Telegram или Гостевой) -->
       <div class="auth-logged-out" id="authLoggedOut" style="display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;">
         <div class="auth-badge">🎄 Новогодний сезон 2025–2026</div>
         <div class="auth-title">❄️ Вход в Студию Обоев</div>
-        <div class="auth-subtitle">Войдите через Telegram, чтобы получить праздничные 4K генерации и сохранять живые обои</div>
-        <div class="tg-login-wrapper" id="telegram-login-container">
-          <script async src="https://telegram.org/js/telegram-widget.js?22"
-                  data-telegram-login="helper_4k_wallpapers_bot"
-                  data-size="large"
-                  data-request-access="write"
-                  data-onauth="onTelegramAuth(user)">
-          </script>
-        </div>
-        <div style="font-size: 0.73rem; color: var(--muted); margin-top: 1px;">
-          ✨ Быстрый вход в 1 клик через официальный виджет Telegram
+        <div class="auth-subtitle">Выберите способ входа для создания новогодних 4K обоев</div>
+
+        <div class="auth-choice-grid">
+          <div class="auth-method-card" id="origTgSlot">
+            <div class="tg-login-wrapper" id="telegram-login-container">
+              <script async src="https://telegram.org/js/telegram-widget.js?22"
+                      data-telegram-login="helper_4k_wallpapers_bot"
+                      data-size="large"
+                      data-request-access="write"
+                      data-onauth="onTelegramAuth(user)">
+              </script>
+            </div>
+            <div class="auth-hint-sub">⚡ Быстрый вход через Telegram виджет</div>
+          </div>
+
+          <div class="auth-choice-divider">
+            <span>или</span>
+          </div>
+
+          <div class="auth-method-card">
+            <button class="btn-guest-login" id="guestLoginBtn" type="button" onclick="loginAsGuest()">
+              <span class="btn-guest-sparkle">👤</span>
+              <span>Гостевая авторизация</span>
+              <span style="font-size: 0.8rem; opacity: 0.8;">✨</span>
+            </button>
+            <div class="auth-hint-sub">Без привязки Telegram, мгновенный доступ</div>
+          </div>
         </div>
       </div>
 
@@ -722,8 +927,9 @@
         </div>
         <div class="user-meta-row">
           <span class="user-pill" id="userHandlePill">👤 @username</span>
-          <span class="user-pill status">⭐ Новогодний статус активен</span>
-          <button class="logout-btn-new" id="tgLogoutBtn" onclick="logoutTelegram()">Выйти</button>
+          <span class="user-pill status" id="userStatusPill">⭐ Новогодний статус активен</span>
+          <button class="tg-switch-btn" id="welcomeTgLoginBtn" style="display: none;" type="button" onclick="openTelegramAuthModal()">🔗 Войти в TG</button>
+          <button class="logout-btn-new" id="tgLogoutBtn" type="button" onclick="logoutTelegram()">Выйти</button>
         </div>
       </div>
     </div>
@@ -800,6 +1006,25 @@
         </div>
         <div class="bot-btn-badge">+Генерации 🎄</div>
       </a>
+
+      <!-- Кнопка авторизации через Telegram для гостей внизу сайта -->
+      <div class="bottom-tg-card" id="bottomTgAuthCard" style="display: none;">
+        <div class="bottom-tg-left">
+          <div class="bottom-tg-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69a.2.2 0 00-.05-.18c-.06-.05-.14-.03-.21-.02-.09.02-1.49.95-4.22 2.79-.4.27-.76.41-1.08.4-.36-.01-1.04-.2-1.55-.37-.63-.2-1.12-.31-1.08-.66.02-.18.27-.36.75-.55 2.92-1.27 4.86-2.11 5.83-2.52 2.78-1.16 3.35-1.36 3.73-1.36.08 0 .27.02.39.12.1.08.13.19.14.27-.01.06.01.24 0 .38z"/>
+            </svg>
+          </div>
+          <div class="bottom-tg-text">
+            <div class="bottom-tg-title">Авторизоваться через Telegram</div>
+            <div class="bottom-tg-sub">Привяжите аккаунт, чтобы сохранять генерации и получать подарки</div>
+          </div>
+        </div>
+        <button class="bottom-tg-btn" type="button" onclick="openTelegramAuthModal()">
+          <span>Войти</span>
+          <span>→</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -868,6 +1093,29 @@
 
         <button class="btn btn-secondary" id="closeAdminPanel" style="margin-top: 4px;">Закрыть панель</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно авторизации через Telegram -->
+  <div class="modal-backdrop" id="telegramAuthModal" style="display: none;">
+    <div class="modal" style="text-align: center; max-width: 380px;">
+      <div style="font-size: 2.2rem; margin-bottom: 4px;">❄️✈️</div>
+      <h2>Вход через Telegram</h2>
+      <p style="font-size: 0.82rem; color: var(--muted); margin-bottom: 12px; line-height: 1.4;">
+        Авторизуйтесь через официальный виджет Telegram, чтобы привязать свой профиль и сохранять 4K обои.
+      </p>
+      
+      <div id="modalTgSlot" style="display: flex; justify-content: center; align-items: center; margin: 12px 0; min-height: 60px;">
+        <!-- Сюда динамически монтируется telegram-login-container -->
+      </div>
+
+      <div style="font-size: 0.72rem; color: var(--muted); margin-top: 6px; margin-bottom: 14px;">
+        🔒 Быстрый и безопасный вход в 1 клик
+      </div>
+
+      <button class="btn btn-secondary" type="button" onclick="closeTelegramAuthModal()" style="width: 100%;">
+        Закрыть
+      </button>
     </div>
   </div>
 
@@ -994,14 +1242,61 @@
     updateQuotaUI();
     checkUrlBonus();
 
+    function loginAsGuest() {
+      safeStorage.setItem("guest_mode", "true");
+      safeStorage.removeItem("tg_user");
+      if (!userId || userId.startsWith("@")) {
+        userId = "user_" + Math.floor(10000 + Math.random() * 90000);
+        safeStorage.setItem("lw_user_id", userId);
+      }
+      setGuestLoggedInUI();
+      updateQuotaUI();
+      checkUrlBonus();
+      showToast("🎄 С наступающим Новым Годом, Неизвестный пользователь! Приятного творчества! 🎁");
+    }
+    window.loginAsGuest = loginAsGuest;
+
+    function setGuestLoggedInUI() {
+      const authLoggedOut = document.getElementById("authLoggedOut");
+      const authLoggedIn = document.getElementById("authLoggedIn");
+      if (authLoggedOut) authLoggedOut.style.display = "none";
+      if (authLoggedIn) authLoggedIn.style.display = "flex";
+
+      const nameEl = document.getElementById("userNameWelcome");
+      if (nameEl) nameEl.textContent = "Неизвестный пользователь";
+
+      const handlePill = document.getElementById("userHandlePill");
+      if (handlePill) handlePill.textContent = "👤 Неизвестный пользователь";
+
+      const statusPill = document.getElementById("userStatusPill");
+      if (statusPill) statusPill.textContent = "⭐ Гостевой доступ активен";
+
+      const userIdDisplay = document.getElementById("userIdDisplay");
+      if (userIdDisplay) userIdDisplay.textContent = userId;
+
+      const adminCurrentId = document.getElementById("adminCurrentId");
+      if (adminCurrentId) adminCurrentId.textContent = userId;
+
+      const targetUserIdInput = document.getElementById("targetUserIdInput");
+      if (targetUserIdInput) targetUserIdInput.value = userId;
+
+      const bottomTgCard = document.getElementById("bottomTgAuthCard");
+      if (bottomTgCard) bottomTgCard.style.display = "flex";
+
+      const welcomeTgBtn = document.getElementById("welcomeTgLoginBtn");
+      if (welcomeTgBtn) welcomeTgBtn.style.display = "inline-flex";
+    }
+
     function onTelegramAuth(user) {
       safeStorage.setItem("tg_user", JSON.stringify(user));
+      safeStorage.removeItem("guest_mode");
       const newUserId = user.username ? ("@" + user.username) : String(user.id);
       userId = newUserId;
       safeStorage.setItem("lw_user_id", newUserId);
       setTelegramLoggedInUI(user);
       updateQuotaUI();
       checkUrlBonus();
+      closeTelegramAuthModal();
       showToast(`🎄 С наступающим Новым Годом, ${user.first_name || 'друг'}! Приятного творчества! 🎁`);
     }
     window.onTelegramAuth = onTelegramAuth;
@@ -1018,6 +1313,9 @@
       const handlePill = document.getElementById("userHandlePill");
       if (handlePill) handlePill.textContent = user.username ? `@${user.username}` : `ID: ${user.id}`;
 
+      const statusPill = document.getElementById("userStatusPill");
+      if (statusPill) statusPill.textContent = "⭐ Новогодний статус активен";
+
       const userIdDisplay = document.getElementById("userIdDisplay");
       if (userIdDisplay) {
         userIdDisplay.textContent = user.username ? `@${user.username}` : user.id;
@@ -1026,10 +1324,50 @@
       if (adminCurrentId) adminCurrentId.textContent = userId;
       const targetUserIdInput = document.getElementById("targetUserIdInput");
       if (targetUserIdInput) targetUserIdInput.value = userId;
+
+      const bottomTgCard = document.getElementById("bottomTgAuthCard");
+      if (bottomTgCard) bottomTgCard.style.display = "none";
+
+      const welcomeTgBtn = document.getElementById("welcomeTgLoginBtn");
+      if (welcomeTgBtn) welcomeTgBtn.style.display = "none";
     }
+
+    function showLoggedOutUI() {
+      const authLoggedOut = document.getElementById("authLoggedOut");
+      const authLoggedIn = document.getElementById("authLoggedIn");
+      if (authLoggedOut) authLoggedOut.style.display = "flex";
+      if (authLoggedIn) authLoggedIn.style.display = "none";
+
+      const bottomTgCard = document.getElementById("bottomTgAuthCard");
+      if (bottomTgCard) bottomTgCard.style.display = "none";
+    }
+
+    function openTelegramAuthModal() {
+      const modal = document.getElementById("telegramAuthModal");
+      const slot = document.getElementById("modalTgSlot");
+      const container = document.getElementById("telegram-login-container");
+      if (slot && container && !slot.contains(container)) {
+        slot.appendChild(container);
+      }
+      if (container) container.style.display = "flex";
+      if (modal) modal.style.display = "flex";
+    }
+    window.openTelegramAuthModal = openTelegramAuthModal;
+
+    function closeTelegramAuthModal() {
+      const modal = document.getElementById("telegramAuthModal");
+      if (modal) modal.style.display = "none";
+      const origParent = document.getElementById("origTgSlot");
+      const container = document.getElementById("telegram-login-container");
+      if (origParent && container && !origParent.contains(container)) {
+        origParent.appendChild(container);
+      }
+    }
+    window.closeTelegramAuthModal = closeTelegramAuthModal;
 
     function logoutTelegram() {
       safeStorage.removeItem("tg_user");
+      safeStorage.removeItem("guest_mode");
       safeStorage.removeItem("lw_user_id");
       location.reload();
     }
@@ -1037,18 +1375,31 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       const savedTg = safeStorage.getItem("tg_user");
+      const isGuest = safeStorage.getItem("guest_mode") === "true";
       if (savedTg) {
         try {
           const user = JSON.parse(savedTg);
           setTelegramLoggedInUI(user);
         } catch (e) {
           safeStorage.removeItem("tg_user");
+          showLoggedOutUI();
         }
+      } else if (isGuest) {
+        setGuestLoggedInUI();
+      } else {
+        showLoggedOutUI();
       }
+
       const logoutBtn = document.getElementById("tgLogoutBtn");
       if (logoutBtn) {
         logoutBtn.addEventListener("click", logoutTelegram);
       }
+
+      document.getElementById("telegramAuthModal")?.addEventListener("click", (e) => {
+        if (e.target.id === "telegramAuthModal") {
+          closeTelegramAuthModal();
+        }
+      });
     });
 
     document.getElementById("copyIdBtn").addEventListener("click", () => {
